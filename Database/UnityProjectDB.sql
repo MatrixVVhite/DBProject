@@ -56,7 +56,7 @@ CREATE TABLE `questions` (
   `Answer3` varchar(45) NOT NULL,
   `Answer4` varchar(45) NOT NULL,
   PRIMARY KEY (`QuestionID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,7 +65,11 @@ CREATE TABLE `questions` (
 
 LOCK TABLES `questions` WRITE;
 /*!40000 ALTER TABLE `questions` DISABLE KEYS */;
-INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','Infinity Ward','Treyarch','Sledgehammer Games','Activision'),(4,'Which video game sold the most copies?','Minecraft','Tetris','GTA 5','Wii Sports'),(5,'Which pro league of legends team has won the most world championships?','SKT1','TSM','Team Liquid','Fnatics'),(6,'What was the very first video game ever created?','Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951');
+INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','Infinity Ward','Treyarch','Sledgehammer Games','Activision'),
+(2,'In the world of dungeons and dragons, the demon prince Orcus holds a famous artifact - what is it?','Wand of Orcus','Sword of Orcus','Shield of Orcus','Crown of Orcus'),
+(3,'Which video game sold the most copies?','Minecraft','Tetris','GTA 5','Wii Sports'),
+(4,'Which pro league of legends team has won the most world championships?','SKT1','TSM','Team Liquid','Fnatics'),
+(5,'What was the very first video game ever created?','Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951');
 /*!40000 ALTER TABLE `questions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
