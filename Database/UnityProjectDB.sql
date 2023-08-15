@@ -51,12 +51,12 @@ DROP TABLE IF EXISTS `questions`;
 CREATE TABLE `questions` (
   `QuestionID` int NOT NULL AUTO_INCREMENT COMMENT 'The ID of the question',
   `QuestionText` varchar(100) NOT NULL COMMENT 'The question itself, in text form',
-  `Answer1` varchar(45) NOT NULL COMMENT 'Answer 1 is always the correct answer, all answers will be scrambled in game',
+  `CorrectAnswer` varchar(45) NOT NULL COMMENT 'Answer 1 is always the correct answer, all answers will be scrambled in game',
   `Answer2` varchar(45) NOT NULL,
   `Answer3` varchar(45) NOT NULL,
   `Answer4` varchar(45) NOT NULL,
   PRIMARY KEY (`QuestionID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,6 +65,7 @@ CREATE TABLE `questions` (
 
 LOCK TABLES `questions` WRITE;
 /*!40000 ALTER TABLE `questions` DISABLE KEYS */;
+INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','Infinity Ward','Treyarch','Sledgehammer Games','Activision');
 /*!40000 ALTER TABLE `questions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -77,4 +78,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-15 15:37:18
+-- Dump completed on 2023-08-15 16:05:11
