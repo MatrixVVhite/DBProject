@@ -1,53 +1,42 @@
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.Networking;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class APIManager : MonoBehaviour
 {
-    const string API_URL = "https://localhost:7004/api/";
+    [SerializeField] UIManager uiManager;
 
-    void Start()
+    const string API_URL = "https://localhost:7166/api/";
+
+    public void GetQuestionText(string id) 
     {
-        
+        StartCoroutine(GetQuestionTextCor(id));
     }
-    
-    
 
-    IEnumerator GetQuestion(int id)
+    IEnumerator GetQuestionTextCor(string id)
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "Questions/" + id.ToString()))
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "Question/" + id))
         {
             yield return request.SendWebRequest();
             switch (request.result)
             {
                 case UnityWebRequest.Result.Success:
-                    Debug.Log(request.downloadHandler.text);
-                    break;
-                default:
-                    Debug.Log(request.result); 
+                    uiManager.UpdateQuestionText(request.downloadHandler.text);
                     break;
             }
         }
     }
 
-    public void GetPlayerName(int id)
+    IEnumerator GetQuestion(int id)
     {
-        StartCoroutine(GetPlayerNameCor(id));
-    }
-
-    IEnumerator GetPlayerNameCor(int id)
-    {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "Questions/" + id.ToString()))
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "Questions/"+id))
         {
             yield return request.SendWebRequest();
-            switch (request.result)
-            {
+            switch(request.result) 
+            { 
                 case UnityWebRequest.Result.Success:
                     Debug.Log(request.downloadHandler.text);
-                    break;
-                default:
-                    Debug.Log(request.result);
+                    
                     break;
             }
         }
