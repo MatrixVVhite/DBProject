@@ -1,7 +1,6 @@
-﻿using MySql.Data;
-using MySql.Data.MySqlClient;
-using MySqlX.XDevAPI.Common;
-using System;
+﻿using MySql.Data.MySqlClient;
+using Server.DataStructures;
+using System.Data;
 using System.Diagnostics;
 
 namespace Server.Database
@@ -11,8 +10,7 @@ namespace Server.Database
 		#region SQL_FIELDS
 		private const string CON_STR = "Server=localhost; database=finalprojectdb; UID=root; password=rootPass";
 		private MySqlConnection _conn;
-		private MySqlCommand _cmd;
-		private MySqlDataReader _reader;
+		private MySqlDataAdapter _data;
 		#endregion
 
 		#region SINGLETON_PROPERTIES
@@ -63,22 +61,31 @@ namespace Server.Database
 		#endregion
 
 		#region QUERIES
-		public string? GetQuestionText(int id)
+		#region SELECT
+		private DataTable SelectQuery(string query)
 		{
-			TryConnect();
-			string? result;
-			string query = $"SELECT QuestionText FROM questions WHERE QuestionID = {id};";
-			_cmd = new MySqlCommand(query, _conn);
-			_reader = _cmd.ExecuteReader();
+			Debug.Assert(query.ToLower().Contains("select"));
+			_data = new MySqlDataAdapter(query, _conn);
+			_data.SelectCommand.CommandType = CommandType.Text;
+			var dt = new DataTable();
+			try
+			{
+				_data.Fill(dt);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
 
-			if (_reader.Read())
-				result = _reader.GetString(0);
-			else
-				result = null;
-			CloseConnection();
-
-			return result;
+			return dt;
 		}
+
+		public Question GetQuestion(int id)
+		{
+			string query = $"SELECT * FROM questions WHERE QuestionID = {id};";
+			return new(SelectQuery(query).Rows[0]);
+		}
+		#endregion
 		#endregion
 	}
 }
