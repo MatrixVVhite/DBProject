@@ -83,7 +83,16 @@ namespace Server.Database
 		public Question GetQuestion(int id)
 		{
 			string query = $"SELECT * FROM questions WHERE QuestionID = {id};";
-			return new(SelectQuery(query).Rows[0]);
+
+			try
+			{
+				return new(SelectQuery(query).Rows[0]);
+			}
+			catch (IndexOutOfRangeException ex)
+			{
+				Debug.WriteLine(ex);
+				return new Question();
+			}
 		}
 		#endregion
 		#endregion
