@@ -152,9 +152,14 @@ namespace Server.Database
 		{
 			throw new NotImplementedException(); // TODO Implement
 		}
+
+		public bool GetTicketExists(int playerToken)
+		{
+			throw new NotImplementedException(); // TODO Implement
+		}
 		#endregion
 
-		#region INSERT/UPDATE
+		#region INSERT/UPDATE/DELETE
 		private int ExecuteInsertUpdate(string statement)
 		{
 			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update"));
@@ -185,6 +190,18 @@ namespace Server.Database
 
 		public bool RemovePlayer(int playerToken)
 		{
+			throw new NotImplementedException(); // TODO Implement
+		}
+
+		public bool SubmitPlayerTicket(int playerToken)
+		{
+			// Note: You don't have to check if a ticket already exists
+			throw new NotImplementedException(); // TODO Implement
+		}
+
+		public bool RemovePlayerTicket(int playerToken)
+		{
+			// Note: You don't have to check if a ticket doesn't already exists
 			throw new NotImplementedException(); // TODO Implement
 		}
 		#endregion

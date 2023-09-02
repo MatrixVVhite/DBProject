@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Server.Database;
 
 namespace Server.Controllers
 {
@@ -6,11 +7,13 @@ namespace Server.Controllers
 	[ApiController]
 	public class RevokeTicketController : ControllerBase
 	{
-		// GET api/<SomethingController>/5s
-		[HttpGet("{id}")]
-		public void Get(int id)
+		[HttpPost("{playerToken}")]
+		public bool Post(int playerToken)
 		{
-			throw new NotImplementedException();
+			if (DatabaseManager.Instance.GetTicketExists(playerToken))
+				return DatabaseManager.Instance.RemovePlayerTicket(playerToken);
+			else
+				return true;
 		}
 	}
 }
