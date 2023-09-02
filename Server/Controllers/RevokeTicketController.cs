@@ -10,10 +10,7 @@ namespace Server.Controllers
 		[HttpPost("{playerToken}")]
 		public bool Post(int playerToken)
 		{
-			if (DatabaseManager.Instance.GetTicketExists(playerToken))
-				return DatabaseManager.Instance.RemovePlayerTicket(playerToken);
-			else
-				return true;
+			return DatabaseManager.Instance.RemovePlayerTicket(playerToken);
 		}
 	}
 }

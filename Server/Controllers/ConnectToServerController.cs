@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Server.Database;
-using System.Security;
 
 namespace Server.Controllers
 {

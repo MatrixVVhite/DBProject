@@ -148,11 +148,21 @@ namespace Server.Database
 			return ExecuteQuery(query);
 		}
 
-		public bool GetPlayerTokenExists(int token)
+		/// <summary>
+		/// Returns whether this unique token already exists for a player.
+		/// </summary>
+		/// <param name="playerToken">Unique token to check for</param>
+		/// <returns>Whether this unique token already exists</returns>
+		public bool GetPlayerTokenExists(int playerToken)
 		{
 			throw new NotImplementedException(); // TODO Implement
 		}
 
+		/// <summary>
+		/// Returns whether this player has a ticket in the waiting queue.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Whether this player has a ticket</returns>
 		public bool GetTicketExists(int playerToken)
 		{
 			throw new NotImplementedException(); // TODO Implement
@@ -182,26 +192,56 @@ namespace Server.Database
 			return rowsAffected;
 		}
 
-		public bool AddNewPlayer(int token, string playerName)
+		/// <summary>
+		/// Connects this player to the server and adds them to the Players table.
+		/// </summary>
+		/// <param name="playerToken">Registers a unique token for the player to identify with</param>
+		/// <param name="playerName">Registers this name as the player's alias</param>
+		/// <returns>Success/Failure</returns>
+		public bool AddNewPlayer(int playerToken, string playerName)
 		{
 			// Note: You don't have to check for unique token here
 			throw new NotImplementedException(); // TODO Implement
 		}
 
+		/// <summary>
+		/// Completely removes this player from the DB.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Success/Failure</returns>
 		public bool RemovePlayer(int playerToken)
 		{
 			throw new NotImplementedException(); // TODO Implement
 		}
 
+		/// <summary>
+		/// Adds this player to the waiting queue. And creates a new match if conditions apply.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Success/Failure</returns>
 		public bool SubmitPlayerTicket(int playerToken)
 		{
-			// Note: You don't have to check if a ticket already exists
+			throw new NotImplementedException(); // TODO Implement
+			CreateMatch(/*<Player IDs>*/); // Call this asynchronously if now 2 players are waiting in the queue
+		}
+
+		/// <summary>
+		/// Removes this player from the waiting queue.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Success/Failure</returns>
+		public bool RemovePlayerTicket(int playerToken)
+		{
 			throw new NotImplementedException(); // TODO Implement
 		}
 
-		public bool RemovePlayerTicket(int playerToken)
+		/// <summary>
+		/// Creates a new match for the players listed in playerIDs. And adds them to it.
+		/// </summary>
+		/// <param name="playerIDs">IDs of the players to add</param>
+		/// <returns>Success/Failure</returns>
+		private bool CreateMatch(params int[] playerIDs)
 		{
-			// Note: You don't have to check if a ticket doesn't already exists
 			throw new NotImplementedException(); // TODO Implement
 		}
 		#endregion
