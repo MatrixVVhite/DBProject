@@ -177,7 +177,13 @@ namespace Server.Database
 			return rowsAffected;
 		}
 
-		public bool AddNewPlayer(int token)
+		public bool AddNewPlayer(int token, string playerName)
+		{
+			// Note: You don't have to check for unique token here
+			throw new NotImplementedException(); // TODO Implement
+		}
+
+		public bool RemovePlayer(int playerToken)
 		{
 			throw new NotImplementedException(); // TODO Implement
 		}

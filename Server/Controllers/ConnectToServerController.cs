@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Server.Database;
+using System.Security;
 
 namespace Server.Controllers
 {
@@ -6,12 +8,29 @@ namespace Server.Controllers
 	[ApiController]
 	public class ConnectToServerController : ControllerBase
 	{
-		// GET api/<SomethingController>/5s
-		[HttpGet("{id}")]
-		public void Get()
+		[HttpPost("{playerName}")]
+		public int Post(string playerName)
 		{
-			throw new NotImplementedException();
+			int playerToken = GetUniquePlayerToken();
+			DatabaseManager.Instance.AddNewPlayer(playerToken, playerName);
+			return playerToken;
 		}
+
+		private int GetUniquePlayerToken()
+		{
+			int token;
+			do
+			{
+				token = GenerateRandomToken();
+			}
+			while (GetTokenAlreadyExists(token));
+
+			return token;
+		}
+
+		private int GenerateRandomToken() => Random.Shared.Next(int.MinValue, int.MaxValue);
+
+		private bool GetTokenAlreadyExists(int token) => DatabaseManager.Instance.GetPlayerTokenExists(token);
 	}
 }
  
