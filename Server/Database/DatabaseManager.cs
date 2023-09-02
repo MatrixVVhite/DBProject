@@ -1,12 +1,13 @@
 ﻿using MySql.Data.MySqlClient;
-using Server.DataStructures;
 using System.Data;
 using System.Diagnostics;
+using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace Server.Database
 {
 	public sealed class DatabaseManager
 	{
+		#region FIELDS
 		#region SQL_FIELDS
 		private const string CON_STR = "Server=localhost; database=finalprojectdb; UID=root; password=rootPass";
 		private MySqlConnection _conn;
@@ -18,7 +19,9 @@ namespace Server.Database
 
 		public static DatabaseManager Instance { get => _lazy.Value; }
 		#endregion
+		#endregion
 
+		#region METHODS
 		#region CONSTRUCTORS
 		public DatabaseManager()
 		{
@@ -26,6 +29,7 @@ namespace Server.Database
 		}
 		#endregion
 
+		#region UTILITY
 		#region CONNECTION
 		private bool TryConnect()
 		{
@@ -60,9 +64,67 @@ namespace Server.Database
 		}
 		#endregion
 
+		#region COMMAND
+		private int ExecuteCommand(string statement)
+		{
+			return CreateCommand(statement).ExecuteNonQuery();
+		}
+
+		private MySqlCommand CreateCommand(string statement)
+		{
+			var cmd = _conn.CreateCommand();
+			cmd.CommandType = CommandType.Text;
+			cmd.CommandText = statement;
+			return cmd;
+		}
+		#endregion
+
+		#region DATA_TO_DICT
+		static private JsonDict DataTableToDictionary(DataTable dataTable)
+		{
+			JsonDict dict;
+			int ROWS_COUNT = dataTable.Rows.Count;
+			if (ROWS_COUNT > 1)
+			{
+				dict = new(ROWS_COUNT);
+				int rowNumber = 1;
+				foreach (DataRow row in dataTable.Rows)
+					dict.Add(rowNumber++.ToString(), DataRowToDictionary(row));
+			}
+			else
+			{
+				dict = DataRowToDictionary(dataTable);
+			}
+			return dict;
+		}
+
+		static private JsonDict DataRowToDictionary(DataTable dataTable)
+		{
+			try
+			{
+				return DataRowToDictionary(dataTable.Rows[0]);
+			}
+			catch (IndexOutOfRangeException ex)
+			{
+				Debug.WriteLine(ex.Message);
+				return new JsonDict();
+			}
+		}
+
+		static private JsonDict DataRowToDictionary(DataRow row)
+		{
+			var dataTable = row.Table;
+			JsonDict dict = new(row.ItemArray.Length);
+			foreach (DataColumn dataColumn in dataTable.Columns)
+				dict.Add(dataColumn.ColumnName, row[dataColumn.ColumnName]?.ToString());
+			return dict;
+		}
+		#endregion
+		#endregion
+
+		#region MYSQL_STATEMENTS
 		#region QUERIES
-		#region SELECT
-		private DataTable SelectQuery(string query)
+		private JsonDict ExecuteQuery(string query)
 		{
 			Debug.Assert(query.ToLower().Contains("select"));
 			_data = new MySqlDataAdapter(query, _conn);
@@ -72,28 +134,54 @@ namespace Server.Database
 			{
 				_data.Fill(dt);
 			}
-			catch (Exception ex)
+			catch (MySqlException ex)
 			{
 				Debug.WriteLine(ex);
 			}
 
-			return dt;
+			return DataTableToDictionary(dt);
 		}
 
-		public Question GetQuestion(int id)
+		public JsonDict GetQuestion(int id)
 		{
 			string query = $"SELECT * FROM questions WHERE QuestionID = {id};";
-
-			try
-			{
-				return new(SelectQuery(query).Rows[0]);
-			}
-			catch (IndexOutOfRangeException ex)
-			{
-				Debug.WriteLine(ex);
-				return new Question();
-			}
+			return ExecuteQuery(query);
 		}
+
+		public bool GetPlayerTokenExists(int token)
+		{
+			throw new NotImplementedException(); // TODO Implement
+		}
+		#endregion
+
+		#region INSERT/UPDATE
+		private int ExecuteInsertUpdate(string statement)
+		{
+			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update"));
+			int rowsAffected = 0;
+			if (TryConnect())
+			{
+				try
+				{
+					ExecuteCommand(statement);
+				}
+				catch (MySqlException ex)
+				{
+					Debug.WriteLine(ex);
+				}
+				finally
+				{
+					CloseConnection();
+				}
+			}
+			return rowsAffected;
+		}
+
+		public bool AddNewPlayer(int token)
+		{
+			throw new NotImplementedException(); // TODO Implement
+		}
+		#endregion
 		#endregion
 		#endregion
 	}

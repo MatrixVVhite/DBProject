@@ -8,7 +8,7 @@ namespace Server.Controllers
 	{
 		// GET api/<SomethingController>/5s
 		[HttpGet("{id}")]
-		public void Get(int id)
+		public void Get()
 		{
 			throw new NotImplementedException();
 		}
