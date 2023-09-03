@@ -16,6 +16,31 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `lobbies`
+--
+
+DROP TABLE IF EXISTS `lobbies`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `lobbies` (
+  `lobbyID` int NOT NULL AUTO_INCREMENT,
+  `isAvailable` tinyint DEFAULT '1',
+  `isGameActive` tinyint DEFAULT '0',
+  PRIMARY KEY (`lobbyID`),
+  UNIQUE KEY `matchID_UNIQUE` (`lobbyID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `lobbies`
+--
+
+LOCK TABLES `lobbies` WRITE;
+/*!40000 ALTER TABLE `lobbies` DISABLE KEYS */;
+/*!40000 ALTER TABLE `lobbies` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `players`
 --
 
@@ -78,4 +103,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-09-01 16:51:18
+-- Dump completed on 2023-09-03 19:52:22
