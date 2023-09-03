@@ -56,7 +56,7 @@ CREATE TABLE `questions` (
   `Answer3` varchar(45) NOT NULL,
   `Answer4` varchar(45) NOT NULL,
   PRIMARY KEY (`QuestionID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,7 +65,7 @@ CREATE TABLE `questions` (
 
 LOCK TABLES `questions` WRITE;
 /*!40000 ALTER TABLE `questions` DISABLE KEYS */;
-INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','1','Infinity Ward','Treyarch','Sledgehammer Games','Activision'),(4,'Which video game sold the most copies?','1','Minecraft','Tetris','GTA 5','Wii Sports'),(5,'Which pro league of legends team has won the most world championships?','1','SKT 1','TSM','Team Liquid','Fnatics'),(6,'What was the very first video game ever created?','1','Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951');
+INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','2','Treyarch','Infinity Ward','Sledgehammer Games','Activision'),(2,'Which video game sold the most copies?','4','Wii Sports','Tetris','GTA 5','Minecraft'),(3,'Which pro league of legends team has won the most world championships?','1','SKT 1','TSM','Team Liquid','Fnatics'),(4,'What was the very first video game ever created?','1','Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951'),(5,'What is the quickest way to gain power in the Devil May Cry universe?','3','Killing a powerful demon','Getting a magical weapon','Attempted suicide','Depression'),(6,'How many times has captain america died and came back to life in the comics?','4','0','1','5','11'),(7,'In the god of war games, why did kratos murder all of Olympus?','3','Zues killed his girlfriend','Athena made his best friend die in a war','Ares made him kill his own family','Ares destroyed his village'),(8,'Which of those characters DIDN\'T die at the end of infinity war?','2','Nick fury','Rocket Racoon','Groot','Winter Soldier'),(9,'In league of legend\'s lore, what is Jax\'s full name?','3','Jaxuli Icathon','Jaxumundi Icathia Uk’nun','Saijax Cail-Rynx Kohari Icath’un','Jax'),(10,'In Ratchet and Clank - Rift Apart, what is the first weapon you are given at the start of the game?','2','Negatron Collider','Burst Pistol','Headhunter','Steel Rifle');
 /*!40000 ALTER TABLE `questions` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -78,4 +78,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-27 16:23:29
+-- Dump completed on 2023-09-01 16:51:18
