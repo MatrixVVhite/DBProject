@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Server.Database;
 
 namespace Server.Controllers
 {
@@ -6,11 +7,10 @@ namespace Server.Controllers
 	[ApiController]
 	public class JoinMatchController : ControllerBase
 	{
-		// GET api/<SomethingController>/5s
-		[HttpGet("{id}")]
-		public void Get(int id)
+		[HttpPost("{playerToken}&{matchID}")]
+		public bool Post(int playerToken, int matchID)
 		{
-			throw new NotImplementedException();
+			return DatabaseManager.Instance.JoinMatch(playerToken, matchID);
 		}
 	}
 }

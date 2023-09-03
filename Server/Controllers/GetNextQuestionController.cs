@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Server.Database;
+using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace Server.Controllers
 {
@@ -6,11 +8,10 @@ namespace Server.Controllers
 	[ApiController]
 	public class GetNextQuestionController : ControllerBase
 	{
-		// GET api/<SomethingController>/5s
-		[HttpGet("{id}")]
-		public void Get(int id)
+		[HttpGet("{playerToken}")]
+		public JsonDict Get(int playerToken)
 		{
-			throw new NotImplementedException();
+			return DatabaseManager.Instance.GetNextQuestionForPlayer(playerToken);
 		}
 	}
 }

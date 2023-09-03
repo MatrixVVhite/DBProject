@@ -167,6 +167,44 @@ namespace Server.Database
 		{
 			throw new NotImplementedException(); // TODO Implement
 		}
+
+		/// <summary>
+		/// Returns whether the server has found a match for this player. And if it did - the match ID.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Whether the server has found a match, and match ID</returns>
+		public (bool, int) GetMatchFound(int playerToken)
+		{
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Returns all relevant information about the match's status, such as:
+		/// Both players' scores.
+		/// How many questions both players have already answered.
+		/// How many questions are left.
+		/// Notify if the other player disconnected.
+		/// </summary>
+		/// <param name="matchID">Unique ID of the match to check</param>
+		/// <returns>A dictionary with all the relevant info</returns>
+		public JsonDict GetMatchStatus(int matchID)
+		{
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
+		/// Returns all the relevant information about this player's next/current questions, such as:
+		/// Question's ID.
+		/// Question's number in the match.
+		/// Question text.
+		/// All 4 possible question answers.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the player to check the question for</param>
+		/// <returns>A dictionary with all the relevant info</returns>
+		public JsonDict GetNextQuestionForPlayer(int playerToken)
+		{
+			throw new NotImplementedException();
+		}
 		#endregion
 
 		#region INSERT/UPDATE/DELETE
@@ -236,11 +274,56 @@ namespace Server.Database
 		}
 
 		/// <summary>
+		/// Adds this player to the match.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <param name="matchID">Unique ID of the match this play joins</param>
+		/// <returns>Success/Failure</returns>
+		public bool JoinMatch(int playerToken, int matchID)
+		{
+			throw new NotImplementedException();
+			//StartMatch(/*<MatchID>*/); // Call this asynchronously if now 2 players have agreed to start the match
+		}
+
+		/// <summary>
+		/// Remove this player from its current the match.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Success/Failure</returns>
+		public bool LeaveMatch(int playerToken)
+		{
+			throw new NotImplementedException();
+			// If this is detrimental to the match, it should probably trigger a match closure
+		}
+
+		/// <summary>
+		/// Registers this player's answer as their answer to their current question
+		/// </summary>
+		/// <param name="playerToken">Unique token of the answering player</param>
+		/// <param name="answerID">ID (Number between 1-4) of the answer to register</param>
+		/// <returns>Success/Failure</returns>
+		/// <exception cref="NotImplementedException"></exception>
+		public bool RegisterAnswer(int playerToken, int answerID)
+		{
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
 		/// Creates a new match for the players listed in playerIDs. And adds them to it.
 		/// </summary>
 		/// <param name="playerIDs">IDs of the players to add</param>
 		/// <returns>Success/Failure</returns>
 		private bool CreateMatch(params int[] playerIDs)
+		{
+			throw new NotImplementedException(); // TODO Implement
+		}
+
+		/// <summary>
+		/// Starts the match listed in MatchID
+		/// </summary>
+		/// <param name="matchID">Unique ID of the match to start</param>
+		/// <returns>Success/Failure</returns>
+		private bool StartMatch(int matchID)
 		{
 			throw new NotImplementedException(); // TODO Implement
 		}
