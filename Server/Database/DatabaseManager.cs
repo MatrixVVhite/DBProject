@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using System.Data;
 using System.Diagnostics;
 using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
@@ -155,8 +156,11 @@ namespace Server.Database
 		/// <returns>Whether this unique token already exists</returns>
 		public bool GetPlayerTokenExists(int playerToken)
 		{
-			throw new NotImplementedException(); // TODO Implement
-		}
+            string query = $"SELECT PlayerToken FROM players WHERE PlayerToken = {playerToken};";
+            var test = ExecuteQuery(query);
+			if (test.Count == 0) { return false; }
+			else { return true; }
+        }
 
 		/// <summary>
 		/// Returns whether this player has a ticket in the waiting queue.
@@ -165,17 +169,22 @@ namespace Server.Database
 		/// <returns>Whether this player has a ticket</returns>
 		public bool GetTicketExists(int playerToken)
 		{
-			throw new NotImplementedException(); // TODO Implement
+            string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken};";
+            int playerID = int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
+            string query = $"SELECT PlayerID FROM queue WHERE PlayerID = {playerID};";
+            var test = ExecuteQuery(query);
+            if (test.Count == 0) { return false; }
+            else { return true; }
 		}
 
 		/// <summary>
 		/// Returns whether the server has found a match for this player. And if it did - the match ID.
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
-		/// <returns>Whether the server has found a match, and match ID</returns>
-		public (bool, int) GetMatchFound(int playerToken)
+		/// <returns>Whether the server has found a match</returns>
+		public bool GetMatchFound(int playerToken)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(); //TODO Implement
 		}
 
 		/// <summary>
@@ -189,7 +198,7 @@ namespace Server.Database
 		/// <returns>A dictionary with all the relevant info</returns>
 		public JsonDict GetMatchStatus(int matchID)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(); //TODO Implement
 		}
 
 		/// <summary>
@@ -203,20 +212,20 @@ namespace Server.Database
 		/// <returns>A dictionary with all the relevant info</returns>
 		public JsonDict GetNextQuestionForPlayer(int playerToken)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(); //TODO Implement
 		}
 		#endregion
 
 		#region INSERT/UPDATE/DELETE
 		private int ExecuteInsertUpdate(string statement)
 		{
-			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update"));
+			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update") || statement.ToLower().Contains("delete"));
 			int rowsAffected = 0;
 			if (TryConnect())
 			{
 				try
 				{
-					ExecuteCommand(statement);
+					rowsAffected = ExecuteCommand(statement);
 				}
 				catch (MySqlException ex)
 				{
@@ -230,6 +239,19 @@ namespace Server.Database
 			return rowsAffected;
 		}
 
+		private int GetPlayerID(int playerToken)
+		{
+            string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken};";
+            return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
+        }
+
+		private bool TestTwoStatements(string statement1, string statement2)
+		{
+            bool test1 = ExecuteInsertUpdate(statement1) != 0;
+            bool test2 = ExecuteInsertUpdate(statement2) > 0;
+			return test1 && test2;
+        }
+
 		/// <summary>
 		/// Connects this player to the server and adds them to the Players table.
 		/// </summary>
@@ -238,9 +260,10 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool AddNewPlayer(int playerToken, string playerName)
 		{
-			// Note: You don't have to check for unique token here
-			throw new NotImplementedException(); // TODO Implement
-		}
+            string statement = $"INSERT INTO `finalprojectdb`.`players` (`PlayerName`, `PlayerToken`) VALUES " +
+				$"('{playerName}', '{playerToken}');";
+            return ExecuteInsertUpdate(statement) > 0;
+        }
 
 		/// <summary>
 		/// Completely removes this player from the DB.
@@ -249,8 +272,9 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool RemovePlayer(int playerToken)
 		{
-			throw new NotImplementedException(); // TODO Implement
-		}
+			string statement = $"DELETE FROM `finalprojectdb`.`players` WHERE(`PlayerToken` = '{playerToken}');";
+			return ExecuteInsertUpdate(statement) > 0;
+        }
 
 		/// <summary>
 		/// Adds this player to the waiting queue. And creates a new match if conditions apply.
@@ -258,10 +282,18 @@ namespace Server.Database
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
 		public bool SubmitPlayerTicket(int playerToken)
-		{
-			throw new NotImplementedException(); // TODO Implement
-			CreateMatch(/*<Player IDs>*/); // Call this asynchronously if now 2 players are waiting in the queue
-		}
+        {
+			int playerID = GetPlayerID(playerToken);
+            string statement1 = $"INSERT IGNORE INTO `finalprojectdb`.`queue` (`PlayerID`) VALUES ('{playerID}');";
+            string statement2 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '1' WHERE (`PlayerID` = '{playerID}');";
+
+            string getPlayersInQueue = $"SELECT COUNT(PlayerID) FROM finalprojectdb.queue;";
+            if (int.Parse(ExecuteQuery(getPlayersInQueue)["COUNT(PlayerID)"].ToString()) > 1)//TODO Finish create match implementation and fix queue check
+            {//To get player IDs take this players ID, and the player who is at the top of the queue, ignoring the original player
+                CreateMatch(/*<Player IDs>*/);
+            }
+			return TestTwoStatements(statement1, statement2); //TODO returns false when should be true, fix that to show it works fine
+        }
 
 		/// <summary>
 		/// Removes this player from the waiting queue.
@@ -270,31 +302,39 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool RemovePlayerTicket(int playerToken)
 		{
-			throw new NotImplementedException(); // TODO Implement
-		}
+            int playerID = GetPlayerID(playerToken);
+            string statement1 = $"DELETE FROM `finalprojectdb`.`queue` WHERE(`PlayerID` = '{playerID}');";
+			string statement2 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '0' WHERE (`PlayerID` = '{playerID}');";
+            return TestTwoStatements(statement1, statement2); //TODO returns false when should be true, fix that to show it works fine
+        }
 
 		/// <summary>
 		/// Adds this player to the match.
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
-		/// <param name="matchID">Unique ID of the match this play joins</param>
 		/// <returns>Success/Failure</returns>
-		public bool JoinMatch(int playerToken, int matchID)
+		public bool JoinMatch(int playerToken)
 		{
-			throw new NotImplementedException();
-			//StartMatch(/*<MatchID>*/); // Call this asynchronously if now 2 players have agreed to start the match
-		}
+            int playerID = GetPlayerID(playerToken);
+            string statement = $"UPDATE `finalprojectdb`.`queue` SET `AcceptMatch` = '1' WHERE (`PlayerID` = '{playerID}');";
+			return ExecuteInsertUpdate(statement) > 0;
+            //Each player will send a JoinMatch(playerToken) check when they click accept match in game,
+			//when either of them do so try to use StartMatch(MatchID). Once both have agreed, it will start
+			//TODO Finish implementation
+        }
 
 		/// <summary>
-		/// Remove this player from its current the match.
+		/// Remove this player from its current match.
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
 		public bool LeaveMatch(int playerToken)
 		{
-			throw new NotImplementedException();
-			// If this is detrimental to the match, it should probably trigger a match closure
-		}
+            int playerID = GetPlayerID(playerToken);
+            string statement1 = $"DELETE FROM `finalprojectdb`.`queue` WHERE (`PlayerID` = '{playerID}');";
+            string statement2 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '0' WHERE (`PlayerID` = '{playerID}');";
+            return TestTwoStatements(statement1, statement2); //TODO Get the match the player was in and use EndMatch(matchID)
+        }
 
 		/// <summary>
 		/// Registers this player's answer as their answer to their current question
@@ -305,7 +345,7 @@ namespace Server.Database
 		/// <exception cref="NotImplementedException"></exception>
 		public bool RegisterAnswer(int playerToken, int answerID)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(); //TODO Implement
 		}
 
 		/// <summary>
@@ -315,8 +355,16 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		private bool CreateMatch(params int[] playerIDs)
 		{
-			throw new NotImplementedException(); // TODO Implement
-		}
+            string statement1 = $"INSERT INTO `finalprojectdb`.`lobbies` (`Player1ID`, `Player2ID`) VALUES ('{playerIDs[0]}', '{playerIDs[1]}');";
+			bool test1 = ExecuteInsertUpdate(statement1) > 0;
+            string findLobbyQuery = $"SELECT Player1ID FROM lobbies WHERE Player1ID = {playerIDs[0]};";
+			int lobbyNumber = int.Parse(ExecuteQuery(findLobbyQuery)["LobbyID"].ToString()); //Creates and returns the lobby number
+
+            string statement2 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '2', `LobbyNumber` = '{lobbyNumber}' WHERE (`PlayerID` = '{playerIDs[0]}');";
+            string statement3 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '2', `LobbyNumber` = '{lobbyNumber}' WHERE (`PlayerID` = '{playerIDs[1]}');";
+            //TODO Send both players join request here
+            return TestTwoStatements(statement2, statement3) && test1;// TODO finish checkup
+        }
 
 		/// <summary>
 		/// Starts the match listed in MatchID
@@ -325,7 +373,18 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		private bool StartMatch(int matchID)
 		{
-			throw new NotImplementedException(); // TODO Implement
+            //Get both players in the lobby. If both players signal 1 on queue - AcceptMatch, use RemovePlayerTicket(int playerToken) on both players,
+			//update both players' status to 2, and go through with the match
+            //If 1 player leaves or doesn't handshake in time, use EndMatch(matchID) and use SubmitPlayerTicket(int playerToken) on the active player
+            //Then use RemovePlayerTicket(int playerToken) on the inactive player
+            string statement = $"UPDATE `finalprojectdb`.`lobbies` SET `IsGameActive` = '1' WHERE (`LobbyID` = '{matchID}');";
+            return ExecuteInsertUpdate(statement) > 0; // TODO finish implementation
+        }
+
+		private bool EndMatch(int matchID)
+		{
+			//Get both players who were in the match. Update their lobby number to NULL, reset their points, set their status to 0 and bring them back to main menu
+			throw new NotImplementedException();
 		}
 		#endregion
 		#endregion
