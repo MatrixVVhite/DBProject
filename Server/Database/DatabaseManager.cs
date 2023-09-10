@@ -185,11 +185,13 @@ namespace Server.Database
 		/// If returns true send the player a join request
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
-		/// <returns>Whether the server has found a match</returns>
-		public bool GetMatchFound(int playerToken)
+		/// <returns>Whether the server has found a match and the id of the match</returns>
+		public (bool, int) GetMatchFound(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-			return GetPlayerLobby(playerID) != 0; //TODO Finish checkup
+			int playerLobby = GetPlayerLobby(playerID);
+
+            return (playerLobby != 0, playerLobby); //TODO Finish checkup
         }
 
 		/// <summary>

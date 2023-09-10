@@ -8,7 +8,7 @@ namespace Server.Controllers
 	public class IsMatchFoundController : ControllerBase
 	{
 		[HttpGet("{playerToken}")]
-		public bool Get(int playerToken)
+		public (bool, int) Get(int playerToken)
 		{
 			return DatabaseManager.Instance.GetMatchFound(playerToken);
 		}
