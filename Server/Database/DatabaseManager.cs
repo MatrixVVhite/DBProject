@@ -285,7 +285,7 @@ namespace Server.Database
 		private bool UpdatePlayerStatus(int PlayerID, int newStatus) //New status must be 0, 1 or 2
 		{
 			string statement = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '{newStatus}' WHERE (`PlayerID` = '{PlayerID}');";
-			return ExecuteInsertUpdate(statement) > 0;
+			return ExecuteInsertUpdate(statement) > 0; //TODO Fix
 		}
 		private bool RemovePlayerStats(int playerID)
 		{
@@ -348,7 +348,7 @@ namespace Server.Database
                 string getPlayer2Query = $"SELECT PlayerID FROM finalprojectdb.queue WHERE (PlayerID != {playerID}) LIMIT 1;";
                 int player2ID = int.Parse(ExecuteQuery(getPlayer2Query)["PlayerID"].ToString());
 				int[] players = new int[2] { playerID, player2ID };
-                CreateMatch(players); //TODO Finish checkup
+                CreateMatch(players);
             }
 			return test1 && test2;
         }
@@ -406,7 +406,7 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int lobbyID = GetPlayerLobby(playerID);
-			return EndMatch(lobbyID); //Finish checkup
+			return EndMatch(lobbyID); //TODO Check what returns false, everything seems to work on the database
         }
 
 		/// <summary>
@@ -433,7 +433,7 @@ namespace Server.Database
 			int lobbyNumber = GetPlayerLobby(playerIDs[0]); //Creates and returns the lobby number
             string statement2 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '2', `LobbyNumber` = '{lobbyNumber}' WHERE (`PlayerID` = '{playerIDs[0]}');";
             string statement3 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '2', `LobbyNumber` = '{lobbyNumber}' WHERE (`PlayerID` = '{playerIDs[1]}');";
-            return TestTwoStatements(statement2, statement3) && test1;// TODO finish checkup
+            return TestTwoStatements(statement2, statement3) && test1;
         }
 
 		/// <summary>
@@ -481,7 +481,7 @@ namespace Server.Database
 			string deleteLobby = $"DELETE FROM `finalprojectdb`.`lobbies` WHERE (`LobbyID` = '{matchID}');";
 			bool test7 = ExecuteInsertUpdate(deleteLobby) > 0;
 			return test1 && test2 && test3 && test4 && test5 && test6 && test7;
-		} //TODO Finish checkup
+		} //TODO Check what returns false
 		#endregion
 		#endregion
 		#endregion

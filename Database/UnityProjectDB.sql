@@ -23,12 +23,13 @@ DROP TABLE IF EXISTS `lobbies`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lobbies` (
-  `lobbyID` int NOT NULL AUTO_INCREMENT,
-  `isAvailable` tinyint DEFAULT '1',
-  `isGameActive` tinyint DEFAULT '0',
-  PRIMARY KEY (`lobbyID`),
-  UNIQUE KEY `matchID_UNIQUE` (`lobbyID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
+  `LobbyID` int NOT NULL AUTO_INCREMENT,
+  `IsGameActive` tinyint DEFAULT '0',
+  `Player1ID` int DEFAULT NULL,
+  `Player2ID` int DEFAULT NULL,
+  PRIMARY KEY (`LobbyID`),
+  UNIQUE KEY `LobbyID_UNIQUE` (`LobbyID`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -51,8 +52,11 @@ CREATE TABLE `players` (
   `PlayerID` int NOT NULL AUTO_INCREMENT,
   `PlayerName` varchar(45) DEFAULT 'Player',
   `Score` int NOT NULL DEFAULT '0',
+  `PlayerStatus` int NOT NULL DEFAULT '0' COMMENT 'represents the player''s current location in game and in the database\n0 = idle\n1 = in queue\n2 = in lobby',
+  `PlayerToken` int DEFAULT NULL,
+  `LobbyNumber` int DEFAULT '0' COMMENT 'Points to the lobby the player is in\\nNULL if not in a lobby',
   PRIMARY KEY (`PlayerID`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds the players'' info';
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds the players'' info';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -61,7 +65,7 @@ CREATE TABLE `players` (
 
 LOCK TABLES `players` WRITE;
 /*!40000 ALTER TABLE `players` DISABLE KEYS */;
-INSERT INTO `players` VALUES (1,'Yotam',0),(2,'Max',0),(3,'Nehorai',0),(4,'Guy',0),(5,'Satan',0);
+INSERT INTO `players` VALUES (1,'Yotam',0,0,123,0),(2,'Max',0,0,456,0),(3,'Nehorai',0,0,789,0),(4,'Guy',0,0,1011,0);
 /*!40000 ALTER TABLE `players` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -93,6 +97,55 @@ LOCK TABLES `questions` WRITE;
 INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','2','Treyarch','Infinity Ward','Sledgehammer Games','Activision'),(2,'Which video game sold the most copies?','4','Wii Sports','Tetris','GTA 5','Minecraft'),(3,'Which pro league of legends team has won the most world championships?','1','SKT 1','TSM','Team Liquid','Fnatics'),(4,'What was the very first video game ever created?','1','Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951'),(5,'What is the quickest way to gain power in the Devil May Cry universe?','3','Killing a powerful demon','Getting a magical weapon','Attempted suicide','Depression'),(6,'How many times has captain america died and came back to life in the comics?','4','0','1','5','11'),(7,'In the god of war games, why did kratos murder all of Olympus?','3','Zues killed his girlfriend','Athena made his best friend die in a war','Ares made him kill his own family','Ares destroyed his village'),(8,'Which of those characters DIDN\'T die at the end of infinity war?','2','Nick fury','Rocket Racoon','Groot','Winter Soldier'),(9,'In league of legend\'s lore, what is Jax\'s full name?','3','Jaxuli Icathon','Jaxumundi Icathia Uk’nun','Saijax Cail-Rynx Kohari Icath’un','Jax'),(10,'In Ratchet and Clank - Rift Apart, what is the first weapon you are given at the start of the game?','2','Negatron Collider','Burst Pistol','Headhunter','Steel Rifle');
 /*!40000 ALTER TABLE `questions` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `queue`
+--
+
+DROP TABLE IF EXISTS `queue`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `queue` (
+  `PlayerID` int NOT NULL,
+  `AcceptMatch` tinyint NOT NULL DEFAULT '0',
+  PRIMARY KEY (`PlayerID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `queue`
+--
+
+LOCK TABLES `queue` WRITE;
+/*!40000 ALTER TABLE `queue` DISABLE KEYS */;
+/*!40000 ALTER TABLE `queue` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `session stats`
+--
+
+DROP TABLE IF EXISTS `session stats`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `session stats` (
+  `PlayerID` int NOT NULL,
+  `Score` int DEFAULT '0',
+  `LobbyID` int DEFAULT NULL,
+  `CurrentQuestion` int DEFAULT '1',
+  PRIMARY KEY (`PlayerID`),
+  UNIQUE KEY `PlayerID_UNIQUE` (`PlayerID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds all the players'' in game stats';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `session stats`
+--
+
+LOCK TABLES `session stats` WRITE;
+/*!40000 ALTER TABLE `session stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `session stats` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -103,4 +156,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-09-03 19:52:22
+-- Dump completed on 2023-09-12 18:16:50
