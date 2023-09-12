@@ -29,7 +29,7 @@ CREATE TABLE `lobbies` (
   `Player2ID` int DEFAULT NULL,
   PRIMARY KEY (`LobbyID`),
   UNIQUE KEY `LobbyID_UNIQUE` (`LobbyID`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,6 +38,7 @@ CREATE TABLE `lobbies` (
 
 LOCK TABLES `lobbies` WRITE;
 /*!40000 ALTER TABLE `lobbies` DISABLE KEYS */;
+INSERT INTO `lobbies` VALUES (22,1,2,1),(23,0,4,3);
 /*!40000 ALTER TABLE `lobbies` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -56,7 +57,7 @@ CREATE TABLE `players` (
   `PlayerToken` int DEFAULT NULL,
   `LobbyNumber` int DEFAULT '0' COMMENT 'Points to the lobby the player is in\\nNULL if not in a lobby',
   PRIMARY KEY (`PlayerID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds the players'' info';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds the players'' info';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,7 +66,7 @@ CREATE TABLE `players` (
 
 LOCK TABLES `players` WRITE;
 /*!40000 ALTER TABLE `players` DISABLE KEYS */;
-INSERT INTO `players` VALUES (1,'Yotam',0,0,123,0),(2,'Max',0,0,456,0),(3,'Nehorai',0,0,789,0),(4,'Guy',0,0,1011,0);
+INSERT INTO `players` VALUES (1,'Yotam',0,2,123,22),(2,'Max',0,2,456,22),(3,'Nehorai',0,2,789,23),(4,'Guy',0,2,1011,23),(8,'Joe',0,1,1791375436,0);
 /*!40000 ALTER TABLE `players` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -118,6 +119,7 @@ CREATE TABLE `queue` (
 
 LOCK TABLES `queue` WRITE;
 /*!40000 ALTER TABLE `queue` DISABLE KEYS */;
+INSERT INTO `queue` VALUES (1,1),(2,1),(3,0),(4,0),(8,0);
 /*!40000 ALTER TABLE `queue` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -130,8 +132,8 @@ DROP TABLE IF EXISTS `session stats`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `session stats` (
   `PlayerID` int NOT NULL,
-  `Score` int DEFAULT '0',
   `LobbyID` int DEFAULT NULL,
+  `Score` int DEFAULT '0',
   `CurrentQuestion` int DEFAULT '1',
   PRIMARY KEY (`PlayerID`),
   UNIQUE KEY `PlayerID_UNIQUE` (`PlayerID`)
@@ -144,6 +146,7 @@ CREATE TABLE `session stats` (
 
 LOCK TABLES `session stats` WRITE;
 /*!40000 ALTER TABLE `session stats` DISABLE KEYS */;
+INSERT INTO `session stats` VALUES (1,22,0,1),(2,22,0,1),(3,23,0,1),(4,23,0,1);
 /*!40000 ALTER TABLE `session stats` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -156,4 +159,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-09-12 18:16:50
+-- Dump completed on 2023-09-12 19:52:36
