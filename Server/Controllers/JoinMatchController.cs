@@ -8,9 +8,9 @@ namespace Server.Controllers
 	public class JoinMatchController : ControllerBase
 	{
 		[HttpPost("{playerToken}&{matchID}")]
-		public bool Post(int playerToken, int matchID)
+		public bool Post(int playerToken)
 		{
-			return DatabaseManager.Instance.JoinMatch(playerToken, matchID);
+			return DatabaseManager.Instance.JoinMatch(playerToken);
 		}
 	}
 }
