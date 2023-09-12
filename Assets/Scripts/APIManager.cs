@@ -8,7 +8,22 @@ public class APIManager : MonoBehaviour
 
     const string API_URL = "https://localhost:7166/api/";
 
-    public void GetQuestionText(string id) 
+    IEnumerator JoinGame(string PlayerName)
+    {
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer/" + PlayerName))
+        {
+            yield return request.SendWebRequest();
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    uiManager.TriggerWaitingText();
+                    break;
+            }
+        }
+    }
+
+
+    /*public void GetQuestionText(string id) 
     {
         StartCoroutine(GetQuestionTextCor(id));
     }
@@ -40,5 +55,5 @@ public class APIManager : MonoBehaviour
                     break;
             }
         }
-    }
+    }*/
 }

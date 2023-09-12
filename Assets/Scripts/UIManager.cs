@@ -3,17 +3,19 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    public TMP_InputField questionId;
-    public TMP_Text questionText;
-    public APIManager _APIManager;
+    [SerializeField] TMP_InputField PlayerName;
+    [SerializeField] APIManager _APIManager;
+    [SerializeField] TMP_Text WaitingForPlayer;
 
-    public void OnGetQuestionButtonClicked()
+    public void OnJoinGameButtonClicked()
     {
-        _APIManager.GetQuestionText(questionId.text);
+        _APIManager.JoinGame(PlayerName.text);
     }
 
-    public void UpdateQuestionText(string name)
+    public void TriggerWaitingText()
     {
-        questionText.text = name;
+        WaitingForPlayer.Enabled;
     }
+    
+
 }
