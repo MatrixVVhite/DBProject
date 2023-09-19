@@ -8,17 +8,27 @@ public class APIManager : MonoBehaviour
 
     const string API_URL = "https://localhost:7166/api/";
 
-    public IEnumerator JoinGame(string PlayerName)
+
+    public void JoinGame(string playerName)
+    {
+        StartCoroutine(JoinGameCor(playerName));
+    }
+
+    public IEnumerator JoinGameCor(string PlayerName)
     {
         WWWForm form = new WWWForm();
         form.AddField("PlayerName", PlayerName);
+        Debug.Log("Join Attempt Start");
 
-        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", form))
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer/", PlayerName , "text/plain"))
         {
+            Debug.Log("Join Attempt Post Defined");
             yield return request.SendWebRequest();
+            Debug.Log("Join Attempt Post Happened");
             switch (request.result)
             {
                 case UnityWebRequest.Result.Success:
+                Debug.Log("Join Attempt Post Successful");
                     uiManager.ConnectToServerSuccess();
                     break;
             }
@@ -27,7 +37,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator TryStartGame()
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound"))
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"))
         {
             yield return request.SendWebRequest();
             switch (request.result)
@@ -43,7 +53,7 @@ public class APIManager : MonoBehaviour
 
     /*public void GetQuestionText(string id) 
     {
-        StartCoroutine(GetQuestionTextCor(id));
+        StartCoroutine(GetQuestion(int.Parse(id)));
     }
 
     IEnumerator GetQuestionTextCor(string id)
@@ -54,15 +64,15 @@ public class APIManager : MonoBehaviour
             switch (request.result)
             {
                 case UnityWebRequest.Result.Success:
-                    uiManager.UpdateQuestionText(request.downloadHandler.text);
+                    //uiManager.UpdateQuestionText(request.downloadHandler.text);
                     break;
             }
         }
     }
 
-    IEnumerator GetQuestion(int id)
+    public IEnumerator GetQuestion(int id)
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "Questions/"+id))
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "Question/"+id))
         {
             yield return request.SendWebRequest();
             switch(request.result) 
