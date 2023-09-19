@@ -7,8 +7,8 @@ namespace Server.Controllers
 	[ApiController]
 	public class SubmitTicket : ControllerBase
 	{
-		[HttpPost("{playerToken}")]
-		public bool Post(int playerToken)
+		[HttpPost]
+		public bool Post([FromBody] int playerToken)
 		{
 			return DatabaseManager.Instance.SubmitPlayerTicket(playerToken);
 		}

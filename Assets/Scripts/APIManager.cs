@@ -8,19 +8,9 @@ public class APIManager : MonoBehaviour
 
     const string API_URL = "https://localhost:7166/api/";
 
-
-    public void JoinGame(string playerName)
+    public IEnumerator JoinGame(string PlayerName)
     {
-        StartCoroutine(JoinGameCor(playerName));
-    }
-
-    public IEnumerator JoinGameCor(string PlayerName)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("PlayerName", PlayerName);
-        Debug.Log("Join Attempt Start");
-
-        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer/", PlayerName , "text/plain"))
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", $"\"{PlayerName}\"", "text/json"))
         {
             Debug.Log("Join Attempt Post Defined");
             yield return request.SendWebRequest();

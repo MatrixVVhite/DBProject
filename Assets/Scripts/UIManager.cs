@@ -11,7 +11,7 @@ public class UIManager : MonoBehaviour
 
     public void OnJoinGameButtonClicked()
     {
-        _APIManager.JoinGame(PlayerName.text);
+        StartCoroutine(_APIManager.JoinGame(PlayerName.text));
     }
 
     public void TriggerWaitingText()
