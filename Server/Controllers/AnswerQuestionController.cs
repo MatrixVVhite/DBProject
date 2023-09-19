@@ -8,7 +8,7 @@ namespace Server.Controllers
 	public class AnswerQuestionController : ControllerBase
 	{
 		[HttpPost]
-		public bool Post(int playerToken, int answerID)
+		public bool Post([FromForm] int playerToken, [FromForm] int answerID)
 		{
 			return DatabaseManager.Instance.RegisterAnswer(playerToken, answerID);
 		}

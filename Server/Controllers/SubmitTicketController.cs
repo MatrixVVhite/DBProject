@@ -8,7 +8,7 @@ namespace Server.Controllers
 	public class SubmitTicket : ControllerBase
 	{
 		[HttpPost]
-		public bool Post([FromBody] int playerToken)
+		public bool Post([FromForm] int playerToken)
 		{
 			return DatabaseManager.Instance.SubmitPlayerTicket(playerToken);
 		}

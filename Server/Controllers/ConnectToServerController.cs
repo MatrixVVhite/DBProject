@@ -8,7 +8,7 @@ namespace Server.Controllers
 	public class ConnectToServerController : ControllerBase
 	{
 		[HttpPost]
-		public int Post([FromBody] string playerName)
+		public int Post([FromForm] string playerName)
 		{
 			int playerToken = GetUniquePlayerToken();
 			DatabaseManager.Instance.AddNewPlayer(playerToken, playerName);
