@@ -19,8 +19,23 @@ public class APIManager : MonoBehaviour
             switch (request.result)
             {
                 case UnityWebRequest.Result.Success:
+                    uiManager.ConnectToServerSuccess();
+                    break;
+            }
+        }
+    }
+
+    public IEnumerator TryStartGame()
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound"))
+        {
+            yield return request.SendWebRequest();
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
                     uiManager.TriggerWaitingText();
                     break;
+
             }
         }
     }
