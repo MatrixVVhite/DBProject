@@ -5,7 +5,7 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] TMP_InputField PlayerName;
     [SerializeField] APIManager _APIManager;
-    [SerializeField] TMP_Text WaitingForPlayer;
+    [SerializeField] GameObject ConnectionFailed;
 
     public void OnJoinGameButtonClicked()
     {
@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
 
     public void TriggerWaitingText()
     {
-        WaitingForPlayer.Enabled;
+        ConnectionFailed.SetActive(true);
     }
     
 

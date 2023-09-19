@@ -8,9 +8,12 @@ public class APIManager : MonoBehaviour
 
     const string API_URL = "https://localhost:7166/api/";
 
-    IEnumerator JoinGame(string PlayerName)
+    public IEnumerator JoinGame(string PlayerName)
     {
-        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer/" + PlayerName))
+        WWWForm form = new WWWForm();
+        form.AddField("PlayerName", PlayerName);
+
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", form))
         {
             yield return request.SendWebRequest();
             switch (request.result)
