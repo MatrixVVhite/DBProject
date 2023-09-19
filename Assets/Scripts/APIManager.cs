@@ -10,10 +10,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator JoinGame(string PlayerName)
     {
-        WWWForm form = new WWWForm();
-        form.AddField("PlayerName", PlayerName);
-
-        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", form))
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", $"\"{PlayerName}\"", "text/json"))
         {
             yield return request.SendWebRequest();
             switch (request.result)

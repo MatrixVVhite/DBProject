@@ -7,7 +7,7 @@ namespace Server.Controllers
 	[ApiController]
 	public class AnswerQuestionController : ControllerBase
 	{
-		[HttpPost("{playerToken}&{answerID}")]
+		[HttpPost]
 		public bool Post(int playerToken, int answerID)
 		{
 			return DatabaseManager.Instance.RegisterAnswer(playerToken, answerID);

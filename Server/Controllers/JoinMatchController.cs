@@ -7,8 +7,8 @@ namespace Server.Controllers
 	[ApiController]
 	public class JoinMatchController : ControllerBase
 	{
-		[HttpPost("{playerToken}&{matchID}")]
-		public bool Post(int playerToken)
+		[HttpPost]
+		public bool Post([FromBody] int playerToken)
 		{
 			return DatabaseManager.Instance.JoinMatch(playerToken);
 		}
