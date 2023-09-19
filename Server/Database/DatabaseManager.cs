@@ -3,6 +3,7 @@ using MySqlX.XDevAPI.CRUD;
 using Org.BouncyCastle.Asn1.X509.Qualified;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
 using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
 
@@ -219,7 +220,10 @@ namespace Server.Database
 		/// <returns>A dictionary with all the relevant info</returns>
 		public JsonDict GetNextQuestionForPlayer(int playerToken)
 		{
-			throw new NotImplementedException(); //TODO Implement
+			int playerID = GetPlayerID(playerToken);
+			string getCurrentQuestion = $"SELECT CurrentQuestion FROM finalprojectdb.`session stats` WHERE PlayerID = {playerID};";
+			int currentQuestionID = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
+			return GetQuestion(currentQuestionID);
 		}
 		#endregion
 
@@ -255,7 +259,8 @@ namespace Server.Database
 		private int GetPlayerLobby(int playerID)
 		{
 			string getLobbyQuery = $"SELECT LobbyID FROM finalprojectdb.lobbies WHERE (Player1ID = {playerID}) OR (Player2ID = {playerID});";
-            return int.Parse(ExecuteQuery(getLobbyQuery)["LobbyID"].ToString());
+			try { return int.Parse(ExecuteQuery(getLobbyQuery)["LobbyID"].ToString()); }
+			catch (Exception ex) { return 0; }; //TODO Check why it doesn't register LobbyID Key
         }
 
 		private int GetPlayer1IDFromLobby(int LobbyID)
@@ -342,10 +347,13 @@ namespace Server.Database
 			bool test1 = ExecuteInsertUpdate(insertIntoQueue) > 0;
 			bool test2 = UpdatePlayerStatus(playerID, 1);
 
-            string getLFGPlayersInQueue = $"SELECT COUNT(PlayerID) FROM finalprojectdb.queue WHERE (AcceptMatch = 0);"; //TODO Update to also look at players.LobbyNumber
-            if (int.Parse(ExecuteQuery(getLFGPlayersInQueue)["COUNT(PlayerID)"].ToString()) > 1)
+            string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM finalprojectdb.queue INNER JOIN " +
+				$"finalprojectdb.players ON queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0;";
+            if (int.Parse(ExecuteQuery(getLFGPlayersInQueue)["COUNT(queue.PlayerID)"].ToString()) > 1)
             {
-                string getPlayer2Query = $"SELECT PlayerID FROM finalprojectdb.queue WHERE PlayerID != {playerID} AND AcceptMatch = 0 LIMIT 1;";//TODO Update to also look at players.LobbyNumber
+                string getPlayer2Query = $"SELECT queue.PlayerID FROM finalprojectdb.queue INNER JOIN finalprojectdb.players ON " +
+					$"queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0 AND " +
+					$"queue.PlayerID != {playerID} LIMIT 1;";
                 int player2ID = int.Parse(ExecuteQuery(getPlayer2Query)["PlayerID"].ToString());
 				int[] players = new int[2] { playerID, player2ID };
                 CreateMatch(players);
@@ -417,7 +425,16 @@ namespace Server.Database
 		/// <exception cref="NotImplementedException"></exception>
 		public bool RegisterAnswer(int playerToken, int answerID)
 		{
-			throw new NotImplementedException(); //TODO Implement
+			int playerID = GetPlayerID(playerToken);
+			string getCorrectAnswerQuery = $"SELECT questions.CorrectAnswer FROM finalprojectdb.questions INNER JOIN " +
+				$"finalprojectdb.`session stats` ON questions.QuestionID = `session stats`.CurrentQuestion WHERE " +
+				$"`session stats`.PlayerID = {playerID};";
+			try
+			{
+				if (answerID == int.Parse(ExecuteQuery(getCorrectAnswerQuery)["CorrectAnswer"].ToString())) { return true; }
+				else { return false; }
+			}
+			catch (Exception ex) { return false; }
 		}
 
 		/// <summary>
@@ -463,7 +480,7 @@ namespace Server.Database
 				//Add the active player back into the queue here
 				return false; 
 			}
-			// TODO finish implementation
+			//TODO finish implementation
         }
 
 		private bool EndMatch(int matchID)
