@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace Server.Database
@@ -206,7 +207,31 @@ namespace Server.Database
 		/// <returns>A dictionary with all the relevant info</returns>
 		public JsonDict GetMatchStatus(int matchID)
 		{
-			throw new NotImplementedException(); //TODO Implement
+			int player1ID = GetPlayer1IDFromLobby(matchID);
+			int player2ID = GetPlayer2IDFromLobby(matchID);
+			int player1Score = GetPlayerScore(player1ID);
+			int player2Score = GetPlayerScore(player2ID);
+            string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM finalprojectdb.`session stats` WHERE PlayerID = {player1ID};";
+            int currentP1QuestionID = int.Parse(ExecuteQuery(getP1CurrentQuestion)["CurrentQuestion"].ToString());
+            string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM finalprojectdb.`session stats` WHERE PlayerID = {player2ID};";
+            int currentP2QuestionID = int.Parse(ExecuteQuery(getP2CurrentQuestion)["CurrentQuestion"].ToString());
+			int p1QuestionsAnswered = currentP1QuestionID - 1;
+			int p2QuestionsAnswered = currentP2QuestionID - 1;
+			int p1QuestionsLeft = 10 - p1QuestionsAnswered;
+			int p2QuestionsLeft = 10 - p2QuestionsAnswered;
+			string getGameActiveStatus = $"SELECT IsGameActive FROM finalprojectdb.lobbies WHERE LobbyID = {matchID};";
+			int gameActiveStatus = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString());
+			var dataToSend = new JsonDict()
+			{
+				{ "P1Score", player1Score },
+				{ "P2Score", player2Score },
+				{ "P1QuestionsAnswered", p1QuestionsAnswered },
+                { "P2QuestionsAnswered", p2QuestionsAnswered },
+                { "P1QuestionsLeft", p1QuestionsLeft },
+                { "P2QuestionsLeft", p2QuestionsLeft},
+                { "GameActiveStatus", gameActiveStatus }
+            };
+			return dataToSend; //TODO Check on when updated
 		}
 
 		/// <summary>
@@ -309,6 +334,12 @@ namespace Server.Database
             bool test1 = ExecuteInsertUpdate(statement1) != 0;
             bool test2 = ExecuteInsertUpdate(statement2) > 0;
 			return test1 && test2;
+        }
+
+		private int GetPlayerScore(int playerID)
+		{
+            string getPlayerScoreQuery = $"SELECT Score FROM finalprojectdb.`session stats` WHERE(`PlayerID` = '{playerID}');";
+            return int.Parse(ExecuteQuery(getPlayerScoreQuery)["Score"].ToString());
         }
 
 		/// <summary>
