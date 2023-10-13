@@ -14,6 +14,11 @@ public class UIManager : MonoBehaviour
         StartCoroutine(_APIManager.JoinGame(PlayerName.text));
     }
 
+    public void StartGame()
+    {
+        StartCoroutine(_APIManager.TryStartGame(PlayerName.text));
+    }
+
     public void TriggerWaitingText()
     {
         ConnectionFailed.SetActive(true);

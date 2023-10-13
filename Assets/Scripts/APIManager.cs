@@ -30,16 +30,21 @@ public class APIManager : MonoBehaviour
         }
     }
 
-    public IEnumerator TryStartGame()
+    public IEnumerator TryStartGame(string playerName)
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"))
+        Debug.Log("At least it tried");
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"+playerName))
         {
             yield return request.SendWebRequest();
+            Debug.Log(request.result);
             switch (request.result)
             {
                 case UnityWebRequest.Result.Success:
                     uiManager.TriggerWaitingText();
+                    Debug.Log("result success");
                     break;
+               
+                    
 
             }
         }
