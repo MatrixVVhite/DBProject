@@ -68,7 +68,7 @@ public class APIManager : MonoBehaviour
                         break;
                     }
 
-                    
+                    uiManager.StartGame();
                     Debug.Log("result success");
                     break;
                
@@ -77,6 +77,8 @@ public class APIManager : MonoBehaviour
             }
         }
     }
+
+    //public IEnumerator 
 
 
     /*public void GetQuestionText(string id) 
