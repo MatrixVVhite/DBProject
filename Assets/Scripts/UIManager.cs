@@ -7,6 +7,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] TMP_InputField PlayerName;
     [SerializeField] APIManager _APIManager;
     [SerializeField] Button StartGameBTN;
+    [SerializeField] GameObject ReadyButton;
+    [SerializeField] GameObject LeaveQueue;
     [SerializeField] GameObject ConnectionFailed;
 
     public void OnJoinGameButtonClicked()
@@ -16,7 +18,7 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        StartCoroutine(_APIManager.TryStartGame(PlayerName.text));
+        StartCoroutine(_APIManager.TryStartGame());
     }
 
     public void TriggerWaitingText()
@@ -27,6 +29,18 @@ public class UIManager : MonoBehaviour
     public void ConnectToServerSuccess()
     {
         StartGameBTN.interactable = true;
+        ReadyButton.SetActive(false);
+        LeaveQueue.SetActive(true);
+        PlayerName.interactable = false;
+    }
+
+    public void LeaveQueueClick()
+    {
+        StartGameBTN.interactable = false;
+        ReadyButton.SetActive(true);
+        LeaveQueue.SetActive(false);
+        PlayerName.interactable = true;
+        StartCoroutine(_APIManager.LeaveGame());
     }
     
 
