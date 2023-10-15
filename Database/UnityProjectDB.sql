@@ -29,7 +29,7 @@ CREATE TABLE `lobbies` (
   `Player2ID` int DEFAULT NULL,
   PRIMARY KEY (`LobbyID`),
   UNIQUE KEY `LobbyID_UNIQUE` (`LobbyID`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +38,6 @@ CREATE TABLE `lobbies` (
 
 LOCK TABLES `lobbies` WRITE;
 /*!40000 ALTER TABLE `lobbies` DISABLE KEYS */;
-INSERT INTO `lobbies` VALUES (22,1,2,1),(23,0,4,3);
 /*!40000 ALTER TABLE `lobbies` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -51,13 +50,13 @@ DROP TABLE IF EXISTS `players`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `players` (
   `PlayerID` int NOT NULL AUTO_INCREMENT,
-  `PlayerName` varchar(45) DEFAULT 'Player',
-  `Score` int NOT NULL DEFAULT '0',
-  `PlayerStatus` int NOT NULL DEFAULT '0' COMMENT 'represents the player''s current location in game and in the database\n0 = idle\n1 = in queue\n2 = in lobby',
   `PlayerToken` int DEFAULT NULL,
-  `LobbyNumber` int DEFAULT '0' COMMENT 'Points to the lobby the player is in\\nNULL if not in a lobby',
+  `PlayerName` varchar(64) DEFAULT 'Player',
+  `LobbyNumber` int DEFAULT '0' COMMENT 'Points to the lobby the player is in.\nNULL if not in a lobby.',
+  `PlayerStatus` int NOT NULL DEFAULT '0' COMMENT 'Represents the player''s current location in game and in the database.\\n0 = Idle.\\n1 = Queue.\\n2 = Lobby.',
+  `Score` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`PlayerID`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds the players'' info';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds information on the currently connected players';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +65,6 @@ CREATE TABLE `players` (
 
 LOCK TABLES `players` WRITE;
 /*!40000 ALTER TABLE `players` DISABLE KEYS */;
-INSERT INTO `players` VALUES (1,'Yotam',0,2,123,22),(2,'Max',0,2,456,22),(3,'Nehorai',0,2,789,23),(4,'Guy',0,2,1011,23),(8,'Joe',0,0,1791375436,0),(9,'Crow',0,0,-1905493637,0);
 /*!40000 ALTER TABLE `players` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -79,14 +77,14 @@ DROP TABLE IF EXISTS `questions`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `questions` (
   `QuestionID` int NOT NULL AUTO_INCREMENT COMMENT 'The ID of the question',
-  `QuestionText` varchar(100) NOT NULL COMMENT 'The question itself, in text form',
-  `CorrectAnswer` varchar(45) NOT NULL COMMENT 'Answer 1 is always the correct answer, all answers will be scrambled in game',
-  `Answer1` varchar(45) NOT NULL,
-  `Answer2` varchar(45) NOT NULL,
-  `Answer3` varchar(45) NOT NULL,
-  `Answer4` varchar(45) NOT NULL,
+  `QuestionText` varchar(128) NOT NULL COMMENT 'The question itself, in text form.',
+  `CorrectAnswer` int NOT NULL COMMENT 'Describes which answer (Answer1 through Answer4) is the correct one.',
+  `Answer1` varchar(64) NOT NULL,
+  `Answer2` varchar(64) NOT NULL,
+  `Answer3` varchar(64) NOT NULL,
+  `Answer4` varchar(64) NOT NULL,
   PRIMARY KEY (`QuestionID`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +93,7 @@ CREATE TABLE `questions` (
 
 LOCK TABLES `questions` WRITE;
 /*!40000 ALTER TABLE `questions` DISABLE KEYS */;
-INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?','2','Treyarch','Infinity Ward','Sledgehammer Games','Activision'),(2,'Which video game sold the most copies?','4','Wii Sports','Tetris','GTA 5','Minecraft'),(3,'Which pro league of legends team has won the most world championships?','1','SKT 1','TSM','Team Liquid','Fnatics'),(4,'What was the very first video game ever created?','1','Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951'),(5,'What is the quickest way to gain power in the Devil May Cry universe?','3','Killing a powerful demon','Getting a magical weapon','Attempted suicide','Depression'),(6,'How many times has captain america died and came back to life in the comics?','4','0','1','5','11'),(7,'In the god of war games, why did kratos murder all of Olympus?','3','Zues killed his girlfriend','Athena made his best friend die in a war','Ares made him kill his own family','Ares destroyed his village'),(8,'Which of those characters DIDN\'T die at the end of infinity war?','2','Nick fury','Rocket Racoon','Groot','Winter Soldier'),(9,'In league of legend\'s lore, what is Jax\'s full name?','3','Jaxuli Icathon','Jaxumundi Icathia Uk’nun','Saijax Cail-Rynx Kohari Icath’un','Jax'),(10,'In Ratchet and Clank - Rift Apart, what is the first weapon you are given at the start of the game?','2','Negatron Collider','Burst Pistol','Headhunter','Steel Rifle');
+INSERT INTO `questions` VALUES (1,'Which company developed the first call of duty?',2,'Treyarch','Infinity Ward','Sledgehammer Games','Activision'),(2,'Which video game sold the most copies?',4,'Wii Sports','Tetris','GTA 5','Minecraft'),(3,'Which pro league of legends team has won the most world championships?',1,'SKT 1','TSM','Team Liquid','Fnatics'),(4,'What was the very first video game ever created?',1,'Tennis for Two, 1958','pong, 1970','Gun Fight, 1975','Jump Rope Game, 1951'),(5,'What is the quickest way to gain power in the Devil May Cry universe?',3,'Killing a powerful demon','Getting a magical weapon','Attempted suicide','Depression'),(6,'How many times has captain america died and came back to life in the comics?',4,'0','1','5','11'),(7,'In the god of war games, why did kratos murder all of Olympus?',3,'Zues killed his girlfriend','Athena made his best friend die in a war','Ares made him kill his own family','Ares destroyed his village'),(8,'Which of those characters DIDN\'T die at the end of infinity war?',2,'Nick fury','Rocket Racoon','Groot','Winter Soldier'),(9,'In league of legend\'s lore, what is Jax\'s full name?',3,'Jaxuli Icathon','Jaxumundi Icathia Uk’nun','Saijax Cail-Rynx Kohari Icath’un','Jax'),(10,'In Ratchet and Clank - Rift Apart, what is the first weapon you are given at the start of the game?',2,'Negatron Collider','Burst Pistol','Headhunter','Steel Rifle');
 /*!40000 ALTER TABLE `questions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -119,7 +117,6 @@ CREATE TABLE `queue` (
 
 LOCK TABLES `queue` WRITE;
 /*!40000 ALTER TABLE `queue` DISABLE KEYS */;
-INSERT INTO `queue` VALUES (1,1),(2,1),(3,0),(4,0);
 /*!40000 ALTER TABLE `queue` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -146,7 +143,6 @@ CREATE TABLE `session stats` (
 
 LOCK TABLES `session stats` WRITE;
 /*!40000 ALTER TABLE `session stats` DISABLE KEYS */;
-INSERT INTO `session stats` VALUES (1,22,0,1),(2,22,0,1),(3,23,0,1),(4,23,0,1);
 /*!40000 ALTER TABLE `session stats` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -159,4 +155,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-09-19 19:23:03
+-- Dump completed on 2023-10-15 17:20:00
