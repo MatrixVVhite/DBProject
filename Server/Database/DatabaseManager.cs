@@ -160,10 +160,9 @@ namespace Server.Database
 		/// <returns>Whether this unique token already exists</returns>
 		public bool GetPlayerTokenExists(int playerToken)
 		{
-			string query = $"SELECT PlayerToken FROM players WHERE PlayerToken = {playerToken};";
-			var test = ExecuteQuery(query);
-			if (test.Count == 0) { return false; }
-			else { return true; }
+			string query = $"SELECT PlayerToken FROM players WHERE PlayerToken = {playerToken} LIMIT 1;";
+			var result = ExecuteQuery(query);
+			return result.Count != 0;
 		}
 
 		/// <summary>
@@ -173,12 +172,11 @@ namespace Server.Database
 		/// <returns>Whether this player has a ticket</returns>
 		public bool GetTicketExists(int playerToken)
 		{
-			string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken};";
+			string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken} LIMIT 1;";
 			int playerID = int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
-			string query = $"SELECT PlayerID FROM queue WHERE PlayerID = {playerID};";
-			var test = ExecuteQuery(query);
-			if (test.Count == 0) { return false; }
-			else { return true; }
+			string query = $"SELECT PlayerID FROM queue WHERE PlayerID = {playerID} LIMIT 1;";
+			var result = ExecuteQuery(query);
+			return result.Count != 0;
 		}
 
 		/// <summary>
@@ -371,7 +369,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool RemovePlayer(int playerToken)
+		public bool RemovePlayer(int playerToken) // TODO Fix this not cancelling the match if this player is in one
 		{
 			string statement = $"DELETE FROM `finalprojectdb`.`players` WHERE(`PlayerToken` = '{playerToken}');";
 			return ExecuteInsertUpdate(statement) > 0;
@@ -408,7 +406,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool RemovePlayerTicket(int playerToken)
+		public bool RemovePlayerTicket(int playerToken) // TODO Fix this not deleting the lobby of the match the players abandoned
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby;
@@ -475,8 +473,7 @@ namespace Server.Database
 		/// <param name="playerToken">Unique token of the answering player</param>
 		/// <param name="answerID">ID (Number between 1-4) of the answer to register</param>
 		/// <returns>Success/Failure</returns>
-		/// <exception cref="NotImplementedException"></exception>
-		public bool RegisterAnswer(int playerToken, int answerID)
+		public bool RegisterAnswer(int playerToken, int answerID) // TODO Fix CurrentQuestion not being advanced
 		{
 			int playerID = GetPlayerID(playerToken);
 			string getCorrectAnswerQuery = $"SELECT questions.CorrectAnswer FROM finalprojectdb.questions INNER JOIN " +
