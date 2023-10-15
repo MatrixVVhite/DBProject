@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
@@ -72,10 +73,26 @@ public class UIManager : MonoBehaviour
 
     #region Game Menu Fields
     [SerializeField] TextMeshProUGUI _Question;
-    [SerializeField] Button[] _Answers;
+    [SerializeField] TextMeshProUGUI[] _Answers;
+    private Dictionary<string, string> currentQuestion;
     #endregion
 
     #region Game Menu Functions
+
+    public void UpdateQuestion(Dictionary<string,string> newQuestion)
+    {
+        currentQuestion = newQuestion;
+    }
+
+    public void UpdateQuestionUI()
+    {
+        _Question.text = currentQuestion["QuestionText"];
+        for (int i = 0; i<4; i++)
+        {
+            _Answers[i].text = currentQuestion["Answer" + (i + 1)];
+        }
+    
+    }
 
 
     #endregion

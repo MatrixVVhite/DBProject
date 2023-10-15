@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Newtonsoft.Json;
 
 public class APIManager : MonoBehaviour
 {
@@ -171,6 +172,25 @@ public class APIManager : MonoBehaviour
                     Debug.Log("Disconnect Attempt Post Successful");
                     uiManager.StartGame();
                     break;
+            }
+        }
+    }
+
+    public IEnumerator GetNextQuestion()
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetNextQuestion/" + _token))
+        {
+            yield return request.SendWebRequest();
+            Debug.Log(request.result);
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    uiManager.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
+                    uiManager.UpdateQuestionUI();
+                    break;
+
+
+
             }
         }
     }

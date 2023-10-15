@@ -511,7 +511,7 @@ GameObject:
   - component: {fileID: 346700514}
   - component: {fileID: 346700513}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Answer 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -583,10 +583,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -1316,10 +1316,10 @@ MonoBehaviour:
   ConnectionFailed: {fileID: 1129124002}
   _Question: {fileID: 1352383658}
   _Answers:
-  - {fileID: 1698102715}
-  - {fileID: 1349170551}
-  - {fileID: 82146211}
-  - {fileID: 220240209}
+  - {fileID: 1926184286}
+  - {fileID: 1521408972}
+  - {fileID: 346700513}
+  - {fileID: 2002985499}
 --- !u!1 &1091663341
 GameObject:
   m_ObjectHideFlags: 0
@@ -2194,7 +2194,7 @@ GameObject:
   - component: {fileID: 1521408973}
   - component: {fileID: 1521408972}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Answer 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2266,10 +2266,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -2386,7 +2386,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1691793951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2748,7 +2748,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1826513833
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2982,7 +2982,7 @@ GameObject:
   - component: {fileID: 1926184287}
   - component: {fileID: 1926184286}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Answer 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3054,10 +3054,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -3116,7 +3116,7 @@ GameObject:
   - component: {fileID: 2002985500}
   - component: {fileID: 2002985499}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Answer 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3188,10 +3188,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
