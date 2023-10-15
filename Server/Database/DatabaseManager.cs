@@ -269,7 +269,7 @@ namespace Server.Database
 			catch (Exception ex) { return 0; };
 		}
 
-        private int GetPlayer1IDFromLobby(int LobbyID)
+		private int GetPlayer1IDFromLobby(int LobbyID)
 		{
 			string getPlayer1Query = $"SELECT Player1ID FROM lobbies WHERE LobbyID = {LobbyID};";
 			return int.Parse(ExecuteQuery(getPlayer1Query)["Player1ID"].ToString());
@@ -341,19 +341,19 @@ namespace Server.Database
 
 		private bool RemoveLobby(int lobbyID)
 		{
-            string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {lobbyID});";
+			string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {lobbyID});";
 			return ExecuteInsertUpdate(deleteLobby) > 0;
-        }
+		}
 
-        private bool Add1ToCurrentQuestion(int playerID)
-        {
-            string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
-            int currentQuestionNum = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
+		private bool Add1ToCurrentQuestion(int playerID)
+		{
+			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
+			int currentQuestionNum = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
 			string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
 			return ExecuteInsertUpdate(add1ToCurrentQuestionStatement) > 0;
-        }
+		}
 
-        private bool TestTwoStatements(string statement1, string statement2)
+		private bool TestTwoStatements(string statement1, string statement2)
 		{
 			bool test1 = ExecuteInsertUpdate(statement1) != 0;
 			bool test2 = ExecuteInsertUpdate(statement2) > 0;
@@ -381,32 +381,32 @@ namespace Server.Database
 		public bool RemovePlayer(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-            int playerLobby;
-            if (GetPlayerLobby(playerID) != 0) { playerLobby = GetPlayerLobby(playerID); }
-            else { playerLobby = 0; }
-            if (playerLobby != 0)
-            {
-                int player1ID = GetPlayer1IDFromLobby(playerLobby);
-                int player2ID = GetPlayer2IDFromLobby(playerLobby);
-                if (player1ID == playerID) 
+			int playerLobby;
+			if (GetPlayerLobby(playerID) != 0) { playerLobby = GetPlayerLobby(playerID); }
+			else { playerLobby = 0; }
+			if (playerLobby != 0)
+			{
+				int player1ID = GetPlayer1IDFromLobby(playerLobby);
+				int player2ID = GetPlayer2IDFromLobby(playerLobby);
+				if (player1ID == playerID) 
 				{ 
 					RemovePlayerStats(player1ID);
 					RemovePlayerStats(player2ID);
 					SubmitPlayerTicket(GetPlayerToken(player2ID));
-                    UpdatePlayerStatus(player2ID, 1);
-                }
-                else 
+					UpdatePlayerStatus(player2ID, 1);
+				}
+				else 
 				{
 					RemovePlayerStats(player1ID);
 					RemovePlayerStats(player2ID);
 					SubmitPlayerTicket(GetPlayerToken(player1ID));
 					UpdatePlayerStatus(player1ID, 1);
-                }
-                RemoveLobby(playerLobby);
-            }
-            string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
-            bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
-            string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
+				}
+				RemoveLobby(playerLobby);
+			}
+			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
+			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
+			string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
 			bool deleteFromDB = ExecuteInsertUpdate(deleteFromDBStatement) > 0;
 			return deleteFromQueue && deleteFromDB;
 		}
@@ -456,15 +456,15 @@ namespace Server.Database
 				if (player1ID == playerID) 
 				{
 					SubmitPlayerTicket(GetPlayerToken(player2ID));
-                    UpdatePlayerStatus(player2ID, 1);
-                }
+					UpdatePlayerStatus(player2ID, 1);
+				}
 				else 
 				{ 
 					SubmitPlayerTicket(GetPlayerToken(player1ID));
-                    UpdatePlayerStatus(player1ID, 1);
-                }
-                RemoveLobby(playerLobby);
-            }
+					UpdatePlayerStatus(player1ID, 1);
+				}
+				RemoveLobby(playerLobby);
+			}
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
 			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
 			bool updateStatus = UpdatePlayerStatus (playerID, 0);
