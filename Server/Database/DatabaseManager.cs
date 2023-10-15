@@ -204,15 +204,15 @@ namespace Server.Database
 			int player2ID = GetPlayer2IDFromLobby(matchID);
 			int player1Score = GetPlayerScore(player1ID);
 			int player2Score = GetPlayerScore(player2ID);
-			string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM finalprojectdb.`session stats` WHERE PlayerID = {player1ID};";
+			string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
 			int currentP1QuestionID = int.Parse(ExecuteQuery(getP1CurrentQuestion)["CurrentQuestion"].ToString());
-			string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM finalprojectdb.`session stats` WHERE PlayerID = {player2ID};";
+			string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player2ID};";
 			int currentP2QuestionID = int.Parse(ExecuteQuery(getP2CurrentQuestion)["CurrentQuestion"].ToString());
 			int p1QuestionsAnswered = currentP1QuestionID - 1;
 			int p2QuestionsAnswered = currentP2QuestionID - 1;
 			int p1QuestionsLeft = 10 - p1QuestionsAnswered;
 			int p2QuestionsLeft = 10 - p2QuestionsAnswered;
-			string getGameActiveStatus = $"SELECT IsGameActive FROM finalprojectdb.lobbies WHERE LobbyID = {matchID};";
+			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
 			int gameActiveStatus = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString());
 			var dataToSend = new JsonDict()
 			{
@@ -239,14 +239,14 @@ namespace Server.Database
 		public JsonDict GetNextQuestionForPlayer(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-			string getCurrentQuestion = $"SELECT CurrentQuestion FROM finalprojectdb.`session stats` WHERE PlayerID = {playerID};";
+			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
 			int currentQuestionID = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
 			return GetQuestion(currentQuestionID);
 		}
 
 		private int GetPlayerScore(int playerID)
 		{
-			string getPlayerScoreQuery = $"SELECT Score FROM finalprojectdb.`session stats` WHERE(`PlayerID` = '{playerID}');";
+			string getPlayerScoreQuery = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID};";
 			return int.Parse(ExecuteQuery(getPlayerScoreQuery)["Score"].ToString());
 		}
 
@@ -264,20 +264,20 @@ namespace Server.Database
 
 		private int GetPlayerLobby(int playerID)
 		{
-			string getLobbyQuery = $"SELECT LobbyID FROM finalprojectdb.lobbies WHERE (Player1ID = {playerID}) OR (Player2ID = {playerID});";
+			string getLobbyQuery = $"SELECT LobbyID FROM lobbies WHERE (Player1ID = {playerID}) OR (Player2ID = {playerID});";
 			try { return int.Parse(ExecuteQuery(getLobbyQuery)["LobbyID"].ToString()); }
 			catch (Exception ex) { return 0; };
 		}
 
 		private int GetPlayer1IDFromLobby(int LobbyID)
 		{
-			string getPlayer1Query = $"SELECT Player1ID FROM finalprojectdb.lobbies WHERE LobbyID = {LobbyID};";
+			string getPlayer1Query = $"SELECT Player1ID FROM lobbies WHERE LobbyID = {LobbyID};";
 			return int.Parse(ExecuteQuery(getPlayer1Query)["Player1ID"].ToString());
 		}
 
 		private int GetPlayer2IDFromLobby(int LobbyID)
 		{
-			string getPlayer2Query = $"SELECT Player2ID FROM finalprojectdb.lobbies WHERE LobbyID = {LobbyID};";
+			string getPlayer2Query = $"SELECT Player2ID FROM lobbies WHERE LobbyID = {LobbyID};";
 			return int.Parse(ExecuteQuery(getPlayer2Query)["Player2ID"].ToString());
 		}
 
@@ -322,20 +322,20 @@ namespace Server.Database
 
 		private bool UpdatePlayerStatus(int PlayerID, int newStatus) //New status must be 0, 1 or 2
 		{
-			string statement = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '{newStatus}' WHERE (`PlayerID` = '{PlayerID}');";
+			string statement = $"UPDATE players SET PlayerStatus = {newStatus} WHERE (PlayerID = {PlayerID});";
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
 		private bool RemovePlayerStats(int playerID)
 		{
-			string removeSessionStats = $"DELETE FROM `finalprojectdb`.`session stats` WHERE(`PlayerID` = '{playerID}');";
+			string removeSessionStats = $"DELETE FROM `session stats` WHERE(PlayerID = {playerID});";
 			bool test = ExecuteInsertUpdate(removeSessionStats) > 0;
 			return test;
 		}
 
 		private bool RemovePlayerLobbyNumber(int playerID)
 		{
-			string statement = $"UPDATE `finalprojectdb`.`players` SET `LobbyNumber` = '0' WHERE (`PlayerID` = '{playerID}');";
+			string statement = $"UPDATE players SET LobbyNumber = 0 WHERE (PlayerID = {playerID});";
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
@@ -354,8 +354,8 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool AddNewPlayer(int playerToken, string playerName)
 		{
-			string statement = $"INSERT INTO `finalprojectdb`.`players` (`PlayerName`, `PlayerToken`) VALUES " +
-				$"('{playerName}', '{playerToken}');";
+			string statement = $"INSERT INTO players (PlayerName, PlayerToken) VALUES " +
+				$"({playerName}, {playerToken});";
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
@@ -366,7 +366,7 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool RemovePlayer(int playerToken) // TODO Fix this not cancelling the match if this player is in one
 		{
-			string statement = $"DELETE FROM `finalprojectdb`.`players` WHERE(`PlayerToken` = '{playerToken}');";
+			string statement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
@@ -378,15 +378,15 @@ namespace Server.Database
 		public bool SubmitPlayerTicket(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-			string insertIntoQueue = $"INSERT IGNORE INTO `finalprojectdb`.`queue` (`PlayerID`) VALUES ('{playerID}');";
+			string insertIntoQueue = $"INSERT IGNORE INTO queue (`PlayerID`) VALUES ({playerID});";
 			bool test1 = ExecuteInsertUpdate(insertIntoQueue) > 0;
 			bool test2 = UpdatePlayerStatus(playerID, 1);
 
-			string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM finalprojectdb.queue INNER JOIN " +
-				$"finalprojectdb.players ON queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0;";
+			string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM queue INNER JOIN " +
+				$"players ON queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0;";
 			if (int.Parse(ExecuteQuery(getLFGPlayersInQueue)["COUNT(queue.PlayerID)"].ToString()) > 1)
 			{
-				string getPlayer2Query = $"SELECT queue.PlayerID FROM finalprojectdb.queue INNER JOIN finalprojectdb.players ON " +
+				string getPlayer2Query = $"SELECT queue.PlayerID FROM queue INNER JOIN players ON " +
 					$"queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0 AND " +
 					$"queue.PlayerID != {playerID} LIMIT 1;";
 				int player2ID = int.Parse(ExecuteQuery(getPlayer2Query)["PlayerID"].ToString());
@@ -414,7 +414,7 @@ namespace Server.Database
 				if (player1ID == playerID) { SubmitPlayerTicket(GetPlayerToken(player2ID)); }
 				else { SubmitPlayerTicket(GetPlayerToken(player1ID)); }
 			}
-			string deleteFromQueueQuery = $"DELETE FROM `finalprojectdb`.`queue` WHERE(`PlayerID` = '{playerID}');";
+			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
 			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
 			bool updateStatus = UpdatePlayerStatus (playerID, 0);
 			return deleteFromQueue && updateStatus;
@@ -422,7 +422,7 @@ namespace Server.Database
 
 		public bool RemovePlayerTicketByID(int playerID)
 		{
-			string deleteFromQueue = $"DELETE FROM `finalprojectdb`.`queue` WHERE(`PlayerID` = '{playerID}');";
+			string deleteFromQueue = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
 			bool test1 = ExecuteInsertUpdate(deleteFromQueue) > 0;
 			bool test2 = UpdatePlayerStatus(playerID, 0);
 			return test1 && test2;
@@ -437,7 +437,7 @@ namespace Server.Database
 		public bool JoinMatch(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-			string statement = $"UPDATE `finalprojectdb`.`queue` SET `AcceptMatch` = '1' WHERE (`PlayerID` = '{playerID}');";
+			string statement = $"UPDATE queue SET AcceptMatch = 1 WHERE (PlayerID = {playerID});";
 			bool test1 = ExecuteInsertUpdate(statement) > 0;
 			int lobbyID = GetPlayerLobby(playerID);
 			if (GetHandshakeStatusFromLobby(lobbyID))
@@ -471,8 +471,8 @@ namespace Server.Database
 		public bool RegisterAnswer(int playerToken, int answerID) // TODO Fix CurrentQuestion not being advanced
 		{
 			int playerID = GetPlayerID(playerToken);
-			string getCorrectAnswerQuery = $"SELECT questions.CorrectAnswer FROM finalprojectdb.questions INNER JOIN " +
-				$"finalprojectdb.`session stats` ON questions.QuestionID = `session stats`.CurrentQuestion WHERE " +
+			string getCorrectAnswerQuery = $"SELECT questions.CorrectAnswer FROM questions INNER JOIN " +
+				$"`session stats` ON questions.QuestionID = `session stats`.CurrentQuestion WHERE " +
 				$"`session stats`.PlayerID = {playerID};";
 			try
 			{
@@ -489,13 +489,13 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		private bool CreateMatch(params int[] playerIDs)
 		{
-			string statement1 = $"INSERT INTO `finalprojectdb`.`lobbies` (`Player1ID`, `Player2ID`) VALUES ('{playerIDs[0]}', '{playerIDs[1]}');";
+			string statement1 = $"INSERT INTO lobbies (Player1ID, Player2ID) VALUES ({playerIDs[0]}, {playerIDs[1]});";
 			bool test1 = ExecuteInsertUpdate(statement1) > 0;
 			int lobbyNumber = GetPlayerLobby(playerIDs[0]); //Creates and returns the lobby number
-			string statement2 = $"INSERT INTO `finalprojectdb`.`session stats` (`PlayerID`, `LobbyID`) VALUES ('{playerIDs[0]}', '{lobbyNumber}');";
-			string statement3 = $"INSERT INTO `finalprojectdb`.`session stats` (`PlayerID`, `LobbyID`) VALUES ('{playerIDs[1]}', '{lobbyNumber}');";
-			string statement4 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '2', `LobbyNumber` = '{lobbyNumber}' WHERE (`PlayerID` = '{playerIDs[0]}');";
-			string statement5 = $"UPDATE `finalprojectdb`.`players` SET `PlayerStatus` = '2', `LobbyNumber` = '{lobbyNumber}' WHERE (`PlayerID` = '{playerIDs[1]}');";
+			string statement2 = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({playerIDs[0]}, {lobbyNumber});";
+			string statement3 = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({playerIDs[1]}, {lobbyNumber});";
+			string statement4 = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
+			string statement5 = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
 			return test1 && TestTwoStatements(statement2, statement3) && TestTwoStatements(statement4, statement5);
 		}
 
@@ -511,7 +511,7 @@ namespace Server.Database
 			//Then use RemovePlayerTicket(int playerToken) on the inactive player
 			int player1ID = GetPlayer1IDFromLobby(matchID);
 			int player2ID = GetPlayer2IDFromLobby(matchID);
-			string statement = $"UPDATE `finalprojectdb`.`lobbies` SET `IsGameActive` = '1' WHERE (`LobbyID` = '{matchID}');";
+			string statement = $"UPDATE lobbies SET IsGameActive = 1 WHERE (LobbyID = {matchID});";
 			bool test1 = ExecuteInsertUpdate(statement) > 0;
 			bool test2 = UpdatePlayerStatus(player1ID, 2);
 			bool test3 = UpdatePlayerStatus(player2ID, 2);
@@ -528,7 +528,7 @@ namespace Server.Database
 			bool test4 = RemovePlayerLobbyNumber(player2ID);
 			bool test5 = RemovePlayerTicketByID(player1ID);
 			bool test6 = RemovePlayerTicketByID(player2ID);
-			string deleteLobby = $"DELETE FROM `finalprojectdb`.`lobbies` WHERE (`LobbyID` = '{matchID}');";
+			string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {matchID});";
 			bool test7 = ExecuteInsertUpdate(deleteLobby) > 0;
 			return test1 && test2 && test3 && test4 && test5 && test6 && test7;
 		}
