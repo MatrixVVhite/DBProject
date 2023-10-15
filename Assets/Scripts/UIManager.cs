@@ -24,9 +24,9 @@ public class UIManager : MonoBehaviour
         StartCoroutine(_APIManager.JoinGame(PlayerName.text));
     }
 
-    public void JoinGame()
+    public void StartMatch()
     {
-        StartCoroutine(_APIManager.TryStartGame());
+        StartCoroutine(_APIManager.JoinMatch());
     }
 
     public void TriggerWaitingText()
@@ -36,7 +36,6 @@ public class UIManager : MonoBehaviour
 
     public void ConnectToServerSuccess()
     {
-        StartGameBTN.interactable = true;
         ReadyButton.SetActive(false);
         LeaveQueue.SetActive(true);
         PlayerName.interactable = false;
@@ -48,7 +47,7 @@ public class UIManager : MonoBehaviour
         ReadyButton.SetActive(true);
         LeaveQueue.SetActive(false);
         PlayerName.interactable = true;
-        StartCoroutine(_APIManager.LeaveGame());
+        StartCoroutine(_APIManager.LeaveQueue());
     }
 
     public void StartGame()
@@ -61,6 +60,11 @@ public class UIManager : MonoBehaviour
     {
         MainMenu.SetActive(true);
         Game.SetActive(false);
+    }
+
+    public void MatchFound()
+    {
+        StartGameBTN.interactable=true;
     }
 
     #endregion

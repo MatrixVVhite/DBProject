@@ -978,6 +978,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiManager: {fileID: 1033796557}
+  TestFlag: 0
 --- !u!4 &681559924
 Transform:
   m_ObjectHideFlags: 0
@@ -1078,7 +1079,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1033796557}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: JoinGame
+        m_MethodName: StartMatch
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
