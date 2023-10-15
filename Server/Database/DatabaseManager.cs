@@ -442,7 +442,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool RemovePlayerTicket(int playerToken)
+		public bool RemovePlayerTicket(int playerToken) // TODO Fix this function leaving dirty data when used to cancel a match which has already been found (Especially for the other player).
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby;
@@ -484,7 +484,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool JoinMatch(int playerToken)
+		public bool JoinMatch(int playerToken) // TODO Fix this function creating new rows in 'session stats' even before any player has joined a match (Accepted)
 		{
 			int playerID = GetPlayerID(playerToken);
 			string statement = $"UPDATE queue SET AcceptMatch = 1 WHERE (PlayerID = {playerID});";
