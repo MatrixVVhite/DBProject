@@ -250,29 +250,11 @@ namespace Server.Database
 			int currentQuestionID = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
 			return GetQuestion(currentQuestionID);
 		}
-		#endregion
 
-		#region INSERT/UPDATE/DELETE
-		private int ExecuteInsertUpdate(string statement)
+		private int GetPlayerScore(int playerID)
 		{
-			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update") || statement.ToLower().Contains("delete"));
-			int rowsAffected = 0;
-			if (TryConnect())
-			{
-				try
-				{
-					rowsAffected = ExecuteCommand(statement);
-				}
-				catch (MySqlException ex)
-				{
-					Debug.WriteLine(ex);
-				}
-				finally
-				{
-					CloseConnection();
-				}
-			}
-			return rowsAffected;
+			string getPlayerScoreQuery = $"SELECT Score FROM finalprojectdb.`session stats` WHERE(`PlayerID` = '{playerID}');";
+			return int.Parse(ExecuteQuery(getPlayerScoreQuery)["Score"].ToString());
 		}
 
 		private int GetPlayerID(int playerToken)
@@ -284,7 +266,7 @@ namespace Server.Database
 		private int GetPlayerToken(int playerID)
 		{
 			string getPlayerQuery = $"SELECT PlayerToken FROM players WHERE PlayerID = {playerID};";
-			return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
+			return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerToken"].ToString());
 		}
 
 		private int GetPlayerLobby(int playerID)
@@ -320,6 +302,30 @@ namespace Server.Database
 			}
 			else { return false; }
 		}
+		#endregion
+
+		#region INSERT/UPDATE/DELETE
+		private int ExecuteInsertUpdate(string statement)
+		{
+			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update") || statement.ToLower().Contains("delete"));
+			int rowsAffected = 0;
+			if (TryConnect())
+			{
+				try
+				{
+					rowsAffected = ExecuteCommand(statement);
+				}
+				catch (MySqlException ex)
+				{
+					Debug.WriteLine(ex);
+				}
+				finally
+				{
+					CloseConnection();
+				}
+			}
+			return rowsAffected;
+		}
 
 		private bool UpdatePlayerStatus(int PlayerID, int newStatus) //New status must be 0, 1 or 2
 		{
@@ -345,12 +351,6 @@ namespace Server.Database
 			bool test1 = ExecuteInsertUpdate(statement1) != 0;
 			bool test2 = ExecuteInsertUpdate(statement2) > 0;
 			return test1 && test2;
-		}
-
-		private int GetPlayerScore(int playerID)
-		{
-			string getPlayerScoreQuery = $"SELECT Score FROM finalprojectdb.`session stats` WHERE(`PlayerID` = '{playerID}');";
-			return int.Parse(ExecuteQuery(getPlayerScoreQuery)["Score"].ToString());
 		}
 
 		/// <summary>
