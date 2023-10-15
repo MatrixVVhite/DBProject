@@ -224,7 +224,7 @@ namespace Server.Database
 				{ "P2QuestionsLeft", p2QuestionsLeft},
 				{ "GameActiveStatus", gameActiveStatus }
 			};
-			return dataToSend; //TODO Check on when updated
+			return dataToSend;
 		}
 
 		/// <summary>
@@ -269,7 +269,7 @@ namespace Server.Database
 			catch (Exception ex) { return 0; };
 		}
 
-		private int GetPlayer1IDFromLobby(int LobbyID)
+        private int GetPlayer1IDFromLobby(int LobbyID)
 		{
 			string getPlayer1Query = $"SELECT Player1ID FROM lobbies WHERE LobbyID = {LobbyID};";
 			return int.Parse(ExecuteQuery(getPlayer1Query)["Player1ID"].ToString());
@@ -339,7 +339,21 @@ namespace Server.Database
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
-		private bool TestTwoStatements(string statement1, string statement2)
+		private bool RemoveLobby(int lobbyID)
+		{
+            string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {lobbyID});";
+			return ExecuteInsertUpdate(deleteLobby) > 0;
+        }
+
+        private bool Add1ToCurrentQuestion(int playerID)
+        {
+            string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
+            int currentQuestionNum = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
+			string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
+			return ExecuteInsertUpdate(add1ToCurrentQuestionStatement) > 0;
+        }
+
+        private bool TestTwoStatements(string statement1, string statement2)
 		{
 			bool test1 = ExecuteInsertUpdate(statement1) != 0;
 			bool test2 = ExecuteInsertUpdate(statement2) > 0;
@@ -364,10 +378,37 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool RemovePlayer(int playerToken) // TODO Fix this not cancelling the match if this player is in one
+		public bool RemovePlayer(int playerToken)
 		{
-			string statement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
-			return ExecuteInsertUpdate(statement) > 0;
+			int playerID = GetPlayerID(playerToken);
+            int playerLobby;
+            if (GetPlayerLobby(playerID) != 0) { playerLobby = GetPlayerLobby(playerID); }
+            else { playerLobby = 0; }
+            if (playerLobby != 0)
+            {
+                int player1ID = GetPlayer1IDFromLobby(playerLobby);
+                int player2ID = GetPlayer2IDFromLobby(playerLobby);
+                if (player1ID == playerID) 
+				{ 
+					RemovePlayerStats(player1ID);
+					RemovePlayerStats(player2ID);
+					SubmitPlayerTicket(GetPlayerToken(player2ID));
+                    UpdatePlayerStatus(player2ID, 1);
+                }
+                else 
+				{
+					RemovePlayerStats(player1ID);
+					RemovePlayerStats(player2ID);
+					SubmitPlayerTicket(GetPlayerToken(player1ID));
+					UpdatePlayerStatus(player1ID, 1);
+                }
+                RemoveLobby(playerLobby);
+            }
+            string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
+            bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
+            string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
+			bool deleteFromDB = ExecuteInsertUpdate(deleteFromDBStatement) > 0;
+			return deleteFromQueue && deleteFromDB;
 		}
 
 		/// <summary>
@@ -378,9 +419,10 @@ namespace Server.Database
 		public bool SubmitPlayerTicket(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-			string insertIntoQueue = $"INSERT IGNORE INTO queue (`PlayerID`) VALUES ({playerID});";
-			bool test1 = ExecuteInsertUpdate(insertIntoQueue) > 0;
-			bool test2 = UpdatePlayerStatus(playerID, 1);
+			bool removeLobbyNumber = RemovePlayerLobbyNumber(playerID);
+			string insertIntoQueueStatement = $"INSERT IGNORE INTO queue (`PlayerID`) VALUES ({playerID});";
+			bool insertIntoQueue = ExecuteInsertUpdate(insertIntoQueueStatement) > 0;
+			bool updateStatus = UpdatePlayerStatus(playerID, 1);
 
 			string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM queue INNER JOIN " +
 				$"players ON queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0;";
@@ -393,7 +435,7 @@ namespace Server.Database
 				int[] players = new int[2] { playerID, player2ID };
 				CreateMatch(players);
 			}
-			return test1 && test2;
+			return removeLobbyNumber && insertIntoQueue && updateStatus;
 		}
 
 		/// <summary>
@@ -401,7 +443,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool RemovePlayerTicket(int playerToken) // TODO Fix this not deleting the lobby of the match the players abandoned
+		public bool RemovePlayerTicket(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby;
@@ -411,9 +453,18 @@ namespace Server.Database
 			{
 				int player1ID = GetPlayer1IDFromLobby(playerLobby);
 				int player2ID = GetPlayer2IDFromLobby(playerLobby);
-				if (player1ID == playerID) { SubmitPlayerTicket(GetPlayerToken(player2ID)); }
-				else { SubmitPlayerTicket(GetPlayerToken(player1ID)); }
-			}
+				if (player1ID == playerID) 
+				{
+					SubmitPlayerTicket(GetPlayerToken(player2ID));
+                    UpdatePlayerStatus(player2ID, 1);
+                }
+				else 
+				{ 
+					SubmitPlayerTicket(GetPlayerToken(player1ID));
+                    UpdatePlayerStatus(player1ID, 1);
+                }
+                RemoveLobby(playerLobby);
+            }
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
 			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
 			bool updateStatus = UpdatePlayerStatus (playerID, 0);
@@ -468,7 +519,7 @@ namespace Server.Database
 		/// <param name="playerToken">Unique token of the answering player</param>
 		/// <param name="answerID">ID (Number between 1-4) of the answer to register</param>
 		/// <returns>Success/Failure</returns>
-		public bool RegisterAnswer(int playerToken, int answerID) // TODO Fix CurrentQuestion not being advanced
+		public bool RegisterAnswer(int playerToken, int answerID)
 		{
 			int playerID = GetPlayerID(playerToken);
 			string getCorrectAnswerQuery = $"SELECT questions.CorrectAnswer FROM questions INNER JOIN " +
@@ -476,10 +527,22 @@ namespace Server.Database
 				$"`session stats`.PlayerID = {playerID};";
 			try
 			{
-				if (answerID == int.Parse(ExecuteQuery(getCorrectAnswerQuery)["CorrectAnswer"].ToString())) { return true; }
-				else { return false; }
+				if (answerID == int.Parse(ExecuteQuery(getCorrectAnswerQuery)["CorrectAnswer"].ToString())) 
+				{
+					Add1ToCurrentQuestion(playerID);
+					return true; 
+				}
+				else 
+				{
+					Add1ToCurrentQuestion(playerID);
+					return false;
+				}
 			}
-			catch (Exception ex) { return false; }
+			catch (Exception ex) 
+			{
+				Add1ToCurrentQuestion(playerID);
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -528,8 +591,7 @@ namespace Server.Database
 			bool test4 = RemovePlayerLobbyNumber(player2ID);
 			bool test5 = RemovePlayerTicketByID(player1ID);
 			bool test6 = RemovePlayerTicketByID(player2ID);
-			string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {matchID});";
-			bool test7 = ExecuteInsertUpdate(deleteLobby) > 0;
+			bool test7 = RemoveLobby(matchID);
 			return test1 && test2 && test3 && test4 && test5 && test6 && test7;
 		}
 		#endregion
