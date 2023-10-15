@@ -368,8 +368,7 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool AddNewPlayer(int playerToken, string playerName)
 		{
-			string statement = $"INSERT INTO players (PlayerName, PlayerToken) VALUES " +
-				$"({playerName}, {playerToken});";
+			string statement = $"INSERT INTO players (PlayerName, PlayerToken) VALUES ('{playerName}', {playerToken});";
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
