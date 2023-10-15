@@ -289,7 +289,7 @@ namespace Server.Database
 			string getP2Handshake = $"SELECT AcceptMatch FROM queue WHERE PlayerID = {player2ID};";
 			int testP1Handshake = int.Parse(ExecuteQuery(getP1Handshake)["AcceptMatch"].ToString());
 			int testP2Handshake = int.Parse(ExecuteQuery(getP2Handshake)["AcceptMatch"].ToString());
-			if (testP1Handshake == 1 && testP2Handshake == 1)
+			if (testP1Handshake == 1 & testP2Handshake == 1)
 			{
 				return true;
 			}
@@ -357,7 +357,7 @@ namespace Server.Database
 		{
 			bool test1 = ExecuteInsertUpdate(statement1) != 0;
 			bool test2 = ExecuteInsertUpdate(statement2) > 0;
-			return test1 && test2;
+			return test1 & test2;
 		}
 
 		/// <summary>
@@ -408,7 +408,7 @@ namespace Server.Database
 			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
 			string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
 			bool deleteFromDB = ExecuteInsertUpdate(deleteFromDBStatement) > 0;
-			return deleteFromQueue && deleteFromDB;
+			return deleteFromQueue & deleteFromDB;
 		}
 
 		/// <summary>
@@ -435,7 +435,7 @@ namespace Server.Database
 				int[] players = new int[2] { playerID, player2ID };
 				CreateMatch(players);
 			}
-			return removeLobbyNumber && insertIntoQueue && updateStatus;
+			return removeLobbyNumber & insertIntoQueue & updateStatus;
 		}
 
 		/// <summary>
@@ -468,7 +468,7 @@ namespace Server.Database
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
 			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
 			bool updateStatus = UpdatePlayerStatus (playerID, 0);
-			return deleteFromQueue && updateStatus;
+			return deleteFromQueue & updateStatus;
 		}
 
 		public bool RemovePlayerTicketByID(int playerID)
@@ -476,7 +476,7 @@ namespace Server.Database
 			string deleteFromQueue = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
 			bool test1 = ExecuteInsertUpdate(deleteFromQueue) > 0;
 			bool test2 = UpdatePlayerStatus(playerID, 0);
-			return test1 && test2;
+			return test1 & test2;
 		}
 
 		/// <summary>
@@ -494,7 +494,7 @@ namespace Server.Database
 			if (GetHandshakeStatusFromLobby(lobbyID))
 			{
 				bool test2 = StartMatch(lobbyID);
-				return test1 && test2;
+				return test1 & test2;
 			}
 			else { return test1; }
 			//Each player will send a JoinMatch(playerToken) check when they click accept match in game,
@@ -559,7 +559,7 @@ namespace Server.Database
 			string statement3 = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({playerIDs[1]}, {lobbyNumber});";
 			string statement4 = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
 			string statement5 = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
-			return test1 && TestTwoStatements(statement2, statement3) && TestTwoStatements(statement4, statement5);
+			return test1 & TestTwoStatements(statement2, statement3) & TestTwoStatements(statement4, statement5);
 		}
 
 		/// <summary>
@@ -578,7 +578,7 @@ namespace Server.Database
 			bool test1 = ExecuteInsertUpdate(statement) > 0;
 			bool test2 = UpdatePlayerStatus(player1ID, 2);
 			bool test3 = UpdatePlayerStatus(player2ID, 2);
-			return test1 && test2 && test3;
+			return test1 & test2 & test3;
 		}
 
 		private bool EndMatch(int matchID)
@@ -592,7 +592,7 @@ namespace Server.Database
 			bool test5 = RemovePlayerTicketByID(player1ID);
 			bool test6 = RemovePlayerTicketByID(player2ID);
 			bool test7 = RemoveLobby(matchID);
-			return test1 && test2 && test3 && test4 && test5 && test6 && test7;
+			return test1 & test2 & test3 & test4 & test5 & test6 & test7;
 		}
 		#endregion
 		#endregion
