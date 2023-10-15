@@ -281,11 +281,17 @@ namespace Server.Database
             return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
         }
 
+		private int GetPlayerToken(int playerID)
+		{
+            string getPlayerQuery = $"SELECT PlayerToken FROM players WHERE PlayerID = {playerID};";
+            return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
+        }
+
 		private int GetPlayerLobby(int playerID)
 		{
 			string getLobbyQuery = $"SELECT LobbyID FROM finalprojectdb.lobbies WHERE (Player1ID = {playerID}) OR (Player2ID = {playerID});";
 			try { return int.Parse(ExecuteQuery(getLobbyQuery)["LobbyID"].ToString()); }
-			catch (Exception ex) { return 0; }; //TODO Check why it doesn't register LobbyID Key
+			catch (Exception ex) { return 0; };
         }
 
 		private int GetPlayer1IDFromLobby(int LobbyID)
@@ -400,10 +406,20 @@ namespace Server.Database
 		public bool RemovePlayerTicket(int playerToken)
 		{
             int playerID = GetPlayerID(playerToken);
-            string deleteFromQueue = $"DELETE FROM `finalprojectdb`.`queue` WHERE(`PlayerID` = '{playerID}');";
-			bool test1 = ExecuteInsertUpdate(deleteFromQueue) > 0;
-			bool test2 = UpdatePlayerStatus (playerID, 0);
-            return test1 && test2;
+			int playerLobby;
+			if (GetPlayerLobby(playerID) != 0) { playerLobby = GetPlayerLobby(playerID); }
+			else { playerLobby = 0; }
+            if (playerLobby != 0)
+            {
+				int player1ID = GetPlayer1IDFromLobby(playerLobby);
+				int player2ID = GetPlayer2IDFromLobby(playerLobby);
+				if (player1ID == playerID) { SubmitPlayerTicket(GetPlayerToken(player2ID)); }
+				else { SubmitPlayerTicket(GetPlayerToken(player1ID)); }
+            }
+            string deleteFromQueueQuery = $"DELETE FROM `finalprojectdb`.`queue` WHERE(`PlayerID` = '{playerID}');";
+			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
+			bool updateStatus = UpdatePlayerStatus (playerID, 0);
+			return deleteFromQueue && updateStatus;
         }
 		public bool RemovePlayerTicketByID(int playerID)
 		{
@@ -497,21 +513,11 @@ namespace Server.Database
             //Then use RemovePlayerTicket(int playerToken) on the inactive player
 			int player1ID = GetPlayer1IDFromLobby(matchID);
 			int player2ID = GetPlayer2IDFromLobby(matchID);
-			if (GetHandshakeStatusFromLobby(matchID))
-			{
-                string statement = $"UPDATE `finalprojectdb`.`lobbies` SET `IsGameActive` = '1' WHERE (`LobbyID` = '{matchID}');";
-                bool test1 = ExecuteInsertUpdate(statement) > 0;
-                bool test2 = UpdatePlayerStatus(player1ID, 2);
-                bool test3 = UpdatePlayerStatus(player2ID, 2);
-				return test1 && test2 && test3;
-            }
-			else 
-			{
-				EndMatch(matchID);
-				//Add the active player back into the queue here
-				return false; 
-			}
-			//TODO finish implementation
+            string statement = $"UPDATE `finalprojectdb`.`lobbies` SET `IsGameActive` = '1' WHERE (`LobbyID` = '{matchID}');";
+            bool test1 = ExecuteInsertUpdate(statement) > 0;
+            bool test2 = UpdatePlayerStatus(player1ID, 2);
+            bool test3 = UpdatePlayerStatus(player2ID, 2);
+            return test1 && test2 && test3;
         }
 
 		private bool EndMatch(int matchID)
