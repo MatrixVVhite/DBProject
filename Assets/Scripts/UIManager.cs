@@ -44,11 +44,15 @@ public class UIManager : MonoBehaviour
 
     public void LeaveQueueClick()
     {
+        StartCoroutine(_APIManager.LeaveQueue());
+    }
+
+    public void LeftQueue()
+    {
         StartGameBTN.interactable = false;
         ReadyButton.SetActive(true);
         LeaveQueue.SetActive(false);
         PlayerName.interactable = true;
-        StartCoroutine(_APIManager.LeaveQueue());
     }
 
     public void StartGame()

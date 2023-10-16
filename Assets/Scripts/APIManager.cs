@@ -11,6 +11,7 @@ public class APIManager : MonoBehaviour
     private int _token = 0;
     private string _MatchID = "0";
     private bool _queueflag = true;
+    private bool TicketValid = true;
 
     const string API_URL = "https://localhost:7166/api/";
 
@@ -54,36 +55,40 @@ public class APIManager : MonoBehaviour
         }
     }
 
-    public IEnumerator IsTicketValid(System.Action<bool> callback)
+    public IEnumerator IsTicketValid()
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
+        while (_queueflag)
         {
-            yield return request.SendWebRequest();
-            Debug.Log(request.result);
-            switch (request.result)
+            using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
             {
-                case UnityWebRequest.Result.Success:
-                    if (request.downloadHandler.text == "1") callback(true);
-                    else callback(false);
-                    break;
-                default: callback(false); break;
+                yield return request.SendWebRequest();
+                Debug.Log(request.result);
+                switch (request.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        if (request.downloadHandler.text == "true") TicketValid = true;
+                        else TicketValid = false;
+                        break;
+                    default: TicketValid = false; break;
+                        
 
 
-
+                }
+                yield return new WaitForSecondsRealtime(1);
             }
         }
+               
     }
 
-    public bool IsTicketValidOutput()
+    /*public bool IsTicketValidOutput()
     {
+        
+        float i = 0;
         bool output = false;
-        StartCoroutine(IsTicketValid((_isTicketValid) =>
-        {
-            output = _isTicketValid;
-
-        }));
+        StartCoroutine(IsTicketValid((_isTicketValid) => {output = _isTicketValid;}));
+        
         return output;
-    }
+    }*/
 
     public IEnumerator LeaveGame()
     {
@@ -107,7 +112,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator LeaveQueue()
     {
-        if (IsTicketValidOutput())
+        if (TicketValid)
         {
             List<IMultipartFormSection> formData = new()
             {
@@ -121,6 +126,7 @@ public class APIManager : MonoBehaviour
                     case UnityWebRequest.Result.Success:
                         Debug.Log("Left Queue");
                         _queueflag = false;
+                        uiManager.LeftQueue();
                         StartCoroutine(LeaveGame());
                         break;
                 }
@@ -132,7 +138,7 @@ public class APIManager : MonoBehaviour
     public IEnumerator TryLoadMatch()
     {
         _queueflag = true;
-        while (IsTicketValidOutput() && _queueflag)
+        while (TicketValid && _queueflag)
         {
             using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"+_token))
             {
@@ -141,10 +147,10 @@ public class APIManager : MonoBehaviour
                 switch (request.result)
                 {
                     case UnityWebRequest.Result.Success:
-                        if (request.downloadHandler.text == "0" && TestFlag == false) 
+                        if (request.downloadHandler.text == "0") 
                         {
                             uiManager.TriggerWaitingText();
-                            yield return new WaitForSecondsRealtime(1);
+                            new WaitForSecondsRealtime(1);
                             Debug.Log("Match Not Found");
                             break;
                         }
@@ -158,6 +164,12 @@ public class APIManager : MonoBehaviour
 
                 }
             }
+        }
+
+        if (!TicketValid)
+        {
+            uiManager.LeftQueue();
+            StartCoroutine(LeaveGame());
         }
     }
 
