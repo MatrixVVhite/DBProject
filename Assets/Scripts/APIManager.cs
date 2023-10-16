@@ -112,7 +112,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator LeaveQueue()
     {
-        if (TicketValid)
+        if (TicketValid && _queueflag)
         {
             List<IMultipartFormSection> formData = new()
             {
@@ -156,7 +156,6 @@ public class APIManager : MonoBehaviour
                             Debug.Log("Match Not Found");
                             break;
                         }
-                        _queueflag = false;
                         _MatchID = request.downloadHandler.text;
                         uiManager.MatchFound();
                         Debug.Log("result success");
@@ -188,6 +187,7 @@ public class APIManager : MonoBehaviour
             {
                 case UnityWebRequest.Result.Success:
                     Debug.Log("Disconnect Attempt Post Successful");
+                    _queueflag = false;
                     uiManager.StartGame();
                     break;
             }
