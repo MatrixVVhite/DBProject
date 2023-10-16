@@ -442,7 +442,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool RemovePlayerTicket(int playerToken) // TODO Fix this function leaving dirty data when used to cancel a match which has already been found (Especially for the other player).
+		public bool RemovePlayerTicket(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby;
@@ -456,12 +456,16 @@ namespace Server.Database
 				{
 					SubmitPlayerTicket(GetPlayerToken(player2ID));
 					UpdatePlayerStatus(player2ID, 1);
-				}
+					RemovePlayerStats(player1ID);
+                    RemovePlayerStats(player2ID);
+                }
 				else 
 				{ 
 					SubmitPlayerTicket(GetPlayerToken(player1ID));
 					UpdatePlayerStatus(player1ID, 1);
-				}
+                    RemovePlayerStats(player1ID);
+                    RemovePlayerStats(player2ID);
+                }
 				RemoveLobby(playerLobby);
 			}
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
@@ -484,18 +488,24 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Success/Failure</returns>
-		public bool JoinMatch(int playerToken) // TODO Fix this function creating new rows in 'session stats' even before any player has joined a match (Accepted)
+		public bool JoinMatch(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
 			string statement = $"UPDATE queue SET AcceptMatch = 1 WHERE (PlayerID = {playerID});";
-			bool test1 = ExecuteInsertUpdate(statement) > 0;
+			bool updateQueueAccept = ExecuteInsertUpdate(statement) > 0;
 			int lobbyID = GetPlayerLobby(playerID);
 			if (GetHandshakeStatusFromLobby(lobbyID))
 			{
-				bool test2 = StartMatch(lobbyID);
-				return test1 & test2;
+				int p1ID = GetPlayer1IDFromLobby(lobbyID);
+				int p2ID = GetPlayer2IDFromLobby(lobbyID);
+                string insertP1StatsStatement = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({p1ID}, {lobbyID});";
+                string insertP2StatsStatement = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({p2ID}, {lobbyID});";
+				bool insertP1Stats = ExecuteInsertUpdate(insertP1StatsStatement) > 0;
+				bool insertP2Stats = ExecuteInsertUpdate(insertP2StatsStatement) > 0;
+                bool startMatch = StartMatch(lobbyID);
+				return updateQueueAccept && insertP1Stats && insertP2Stats && startMatch;
 			}
-			else { return test1; }
+			else { return updateQueueAccept; }
 			//Each player will send a JoinMatch(playerToken) check when they click accept match in game,
 			//when either of them do so try to use StartMatch(MatchID). Once both have agreed, it will start
 		}
@@ -552,13 +562,11 @@ namespace Server.Database
 		private bool CreateMatch(params int[] playerIDs)
 		{
 			string statement1 = $"INSERT INTO lobbies (Player1ID, Player2ID) VALUES ({playerIDs[0]}, {playerIDs[1]});";
-			bool test1 = ExecuteInsertUpdate(statement1) > 0;
+			bool insertIntoLobby = ExecuteInsertUpdate(statement1) > 0;
 			int lobbyNumber = GetPlayerLobby(playerIDs[0]); //Creates and returns the lobby number
-			string statement2 = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({playerIDs[0]}, {lobbyNumber});";
-			string statement3 = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({playerIDs[1]}, {lobbyNumber});";
-			string statement4 = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
-			string statement5 = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
-			return test1 & TestTwoStatements(statement2, statement3) & TestTwoStatements(statement4, statement5);
+			string updateP1LobbyNum = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
+			string updateP2LobbyNum = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
+			return insertIntoLobby & TestTwoStatements(updateP1LobbyNum, updateP2LobbyNum);
 		}
 
 		/// <summary>
