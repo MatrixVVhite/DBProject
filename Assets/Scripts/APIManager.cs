@@ -200,7 +200,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> StatusCallback)
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus/" + _MatchID))
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _MatchID + "&playerToken=" + _token))
         {
             yield return request.SendWebRequest();
             Debug.Log(request.result);

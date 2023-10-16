@@ -6,39 +6,40 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] UIManager uiManager;
     [SerializeField] APIManager apiManager;
-    [SerializeField] int LengthOfGame = 5;
+    private string player;
     private bool GameRunning = false;
-    private int currentQuestion = 0;
+    private int questionsLeft = 0;
+    private Dictionary<string, string> MatchStats;
 
     public void RunGame()
     {
+        RefreshStats();
         GameRunning = true;
-        currentQuestion = 0;
+        questionsLeft = int.Parse(MatchStats[player + "QuestionsLeft"]);
         LoadQuestion();
         while (GameRunning)
         {
-            
+            RefreshStats();
 
 
 
 
             new WaitForSeconds(1);
-            if (currentQuestion >= LengthOfGame) GameRunning = false;
+            if (questionsLeft <= 0) GameRunning = false;
         }
     }
 
 
     public void LoadQuestion()
     {
-        currentQuestion++;
-        if (currentQuestion < LengthOfGame)
+        if (questionsLeft > 0)
         {
             apiManager.GetNextQuestion();
         }
     }
 
-    private void RefreshScore()
+    private void RefreshStats()
     {
-
+        StartCoroutine(apiManager.GetMatchStatus((Status) => { MatchStats = Status; }));
     }
 }
