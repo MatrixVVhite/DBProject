@@ -29,7 +29,7 @@ CREATE TABLE `lobbies` (
   `Player2ID` int DEFAULT NULL,
   PRIMARY KEY (`LobbyID`),
   UNIQUE KEY `LobbyID_UNIQUE` (`LobbyID`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='This table holds all active and inactice match slots';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -54,9 +54,8 @@ CREATE TABLE `players` (
   `PlayerName` varchar(64) DEFAULT 'Player',
   `LobbyNumber` int DEFAULT '0' COMMENT 'Points to the lobby the player is in.\nNULL if not in a lobby.',
   `PlayerStatus` int NOT NULL DEFAULT '0' COMMENT 'Represents the player''s current location in game and in the database.\\n0 = Idle.\\n1 = Queue.\\n2 = Lobby.',
-  `Score` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`PlayerID`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds information on the currently connected players';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Holds information on the currently connected players';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -84,7 +83,7 @@ CREATE TABLE `questions` (
   `Answer3` varchar(64) NOT NULL,
   `Answer4` varchar(64) NOT NULL,
   PRIMARY KEY (`QuestionID`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each question holds both the question itself, and the answers';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -155,4 +154,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-10-15 17:20:00
+-- Dump completed on 2023-10-16 17:35:00
