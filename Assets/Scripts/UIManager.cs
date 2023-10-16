@@ -73,7 +73,7 @@ public class UIManager : MonoBehaviour
 
     #region Game Menu Fields
     [SerializeField] TextMeshProUGUI _Question;
-    [SerializeField] TextMeshProUGUI[] _Answers;
+    [SerializeField] ButtonManager[] _Answers;
     private Dictionary<string, string> currentQuestion;
     #endregion
 
@@ -89,9 +89,18 @@ public class UIManager : MonoBehaviour
         _Question.text = currentQuestion["QuestionText"];
         for (int i = 0; i<4; i++)
         {
-            _Answers[i].text = currentQuestion["Answer" + (i + 1)];
+            _Answers[i].updateAnswer((i+1).ToString(),currentQuestion["Answer" + (i + 1)]);
         }
     
+    }
+
+    public bool SubmitAnswer(string AnswerID)
+    {
+        bool result = false;
+        StartCoroutine(_APIManager.AnswerQuestion(AnswerID, (isCorrect) => {
+            result = isCorrect; 
+        }));
+        return result;
     }
 
 

@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 82146213}
   - component: {fileID: 82146212}
   - component: {fileID: 82146211}
+  - component: {fileID: 82146214}
   m_Layer: 5
   m_Name: Answer (3)
   m_TagString: Untagged
@@ -205,7 +206,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 82146212}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 82146214}
+        m_TargetAssemblyTypeName: ButtonManager, Assembly-CSharp
+        m_MethodName: SubmitAnswer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &82146212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -244,6 +257,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 82146209}
   m_CullTransparentMesh: 1
+--- !u!114 &82146214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 82146209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6c00fbfca45994e92717ed7f11e709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  answer: {fileID: 346700513}
+  manager: {fileID: 1033796557}
+  button: {fileID: 82146212}
+  defaultColor: {r: 1, g: 1, b: 1, a: 0}
 --- !u!1 &121687417
 GameObject:
   m_ObjectHideFlags: 0
@@ -390,6 +419,7 @@ GameObject:
   - component: {fileID: 220240211}
   - component: {fileID: 220240210}
   - component: {fileID: 220240209}
+  - component: {fileID: 220240212}
   m_Layer: 5
   m_Name: Answer (4)
   m_TagString: Untagged
@@ -460,7 +490,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 220240210}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 220240212}
+        m_TargetAssemblyTypeName: ButtonManager, Assembly-CSharp
+        m_MethodName: SubmitAnswer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &220240210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -499,6 +541,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 220240207}
   m_CullTransparentMesh: 1
+--- !u!114 &220240212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 220240207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6c00fbfca45994e92717ed7f11e709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  answer: {fileID: 2002985499}
+  manager: {fileID: 1033796557}
+  button: {fileID: 220240210}
+  defaultColor: {r: 1, g: 1, b: 1, a: 0}
 --- !u!1 &346700511
 GameObject:
   m_ObjectHideFlags: 0
@@ -1127,6 +1185,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 719281156}
   m_CullTransparentMesh: 1
+--- !u!1 &783354809
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 783354810}
+  - component: {fileID: 783354811}
+  m_Layer: 0
+  m_Name: Game Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &783354810
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 783354809}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &783354811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 783354809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e2ec82ce387eb429f0465931b2aed3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &831913521
 GameObject:
   m_ObjectHideFlags: 0
@@ -1316,10 +1418,10 @@ MonoBehaviour:
   ConnectionFailed: {fileID: 1129124002}
   _Question: {fileID: 1352383658}
   _Answers:
-  - {fileID: 1926184286}
-  - {fileID: 1521408972}
-  - {fileID: 346700513}
-  - {fileID: 2002985499}
+  - {fileID: 1698102718}
+  - {fileID: 1349170554}
+  - {fileID: 82146214}
+  - {fileID: 220240212}
 --- !u!1 &1091663341
 GameObject:
   m_ObjectHideFlags: 0
@@ -1495,37 +1597,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1091663341}
   m_CullTransparentMesh: 1
---- !u!1 &1101558446
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1101558447}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1101558447
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1101558446}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 563.54095, y: 237.6712, z: 2.9318318}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1129124002
 GameObject:
   m_ObjectHideFlags: 0
@@ -1806,6 +1877,7 @@ GameObject:
   - component: {fileID: 1349170553}
   - component: {fileID: 1349170552}
   - component: {fileID: 1349170551}
+  - component: {fileID: 1349170554}
   m_Layer: 5
   m_Name: Answer (2)
   m_TagString: Untagged
@@ -1876,7 +1948,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1349170552}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1349170554}
+        m_TargetAssemblyTypeName: ButtonManager, Assembly-CSharp
+        m_MethodName: SubmitAnswer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1349170552
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1915,6 +1999,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1349170549}
   m_CullTransparentMesh: 1
+--- !u!114 &1349170554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1349170549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6c00fbfca45994e92717ed7f11e709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  answer: {fileID: 1521408972}
+  manager: {fileID: 1033796557}
+  button: {fileID: 1349170552}
+  defaultColor: {r: 1, g: 1, b: 1, a: 0}
 --- !u!1 &1352383656
 GameObject:
   m_ObjectHideFlags: 0
@@ -2487,6 +2587,7 @@ GameObject:
   - component: {fileID: 1698102717}
   - component: {fileID: 1698102716}
   - component: {fileID: 1698102715}
+  - component: {fileID: 1698102718}
   m_Layer: 5
   m_Name: Answer (1)
   m_TagString: Untagged
@@ -2557,7 +2658,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1698102716}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1698102718}
+        m_TargetAssemblyTypeName: ButtonManager, Assembly-CSharp
+        m_MethodName: SubmitAnswer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1698102716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2571,7 +2684,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.9607844, g: 0.9607844, b: 0.9607844, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2596,6 +2709,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1698102713}
   m_CullTransparentMesh: 1
+--- !u!114 &1698102718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698102713}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6c00fbfca45994e92717ed7f11e709, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  answer: {fileID: 1926184286}
+  manager: {fileID: 1033796557}
+  button: {fileID: 1698102716}
+  defaultColor: {r: 0.9607844, g: 0.9607844, b: 0.9607844, a: 0}
 --- !u!1 &1804802010
 GameObject:
   m_ObjectHideFlags: 0
@@ -3380,4 +3509,4 @@ SceneRoots:
   - {fileID: 681559924}
   - {fileID: 517157158}
   - {fileID: 1033796556}
-  - {fileID: 1101558447}
+  - {fileID: 783354810}
