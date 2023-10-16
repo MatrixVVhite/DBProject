@@ -9,7 +9,9 @@ public class APIManager : MonoBehaviour
     [SerializeField] UIManager uiManager;
     [SerializeField] bool TestFlag = false;
     private int _token = 0;
+    private string _MatchID = "0";
     private bool _queueflag = true;
+    private bool TicketValid = true;
 
     const string API_URL = "https://localhost:7166/api/";
 
@@ -53,36 +55,40 @@ public class APIManager : MonoBehaviour
         }
     }
 
-    public IEnumerator IsTicketValid(System.Action<bool> callback)
+    public IEnumerator IsTicketValid()
     {
-        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
+        while (_queueflag)
         {
-            yield return request.SendWebRequest();
-            Debug.Log(request.result);
-            switch (request.result)
+            using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
             {
-                case UnityWebRequest.Result.Success:
-                    if (request.downloadHandler.text == "1") callback(true);
-                    else callback(false);
-                    break;
-                default: callback(false); break;
+                yield return request.SendWebRequest();
+                Debug.Log(request.result);
+                switch (request.result)
+                {
+                    case UnityWebRequest.Result.Success:
+                        if (request.downloadHandler.text == "true") TicketValid = true;
+                        else TicketValid = false;
+                        break;
+                    default: TicketValid = false; break;
+                        
 
 
-
+                }
+                yield return new WaitForSecondsRealtime(1);
             }
         }
+               
     }
 
-    public bool IsTicketValidOutput()
+    /*public bool IsTicketValidOutput()
     {
+        
+        float i = 0;
         bool output = false;
-        StartCoroutine(IsTicketValid((_isTicketValid) =>
-        {
-            output = _isTicketValid;
-
-        }));
+        StartCoroutine(IsTicketValid((_isTicketValid) => {output = _isTicketValid;}));
+        
         return output;
-    }
+    }*/
 
     public IEnumerator LeaveGame()
     {
@@ -106,7 +112,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator LeaveQueue()
     {
-        if (IsTicketValidOutput())
+        if (TicketValid && _queueflag)
         {
             List<IMultipartFormSection> formData = new()
             {
@@ -120,6 +126,7 @@ public class APIManager : MonoBehaviour
                     case UnityWebRequest.Result.Success:
                         Debug.Log("Left Queue");
                         _queueflag = false;
+                        uiManager.LeftQueue();
                         StartCoroutine(LeaveGame());
                         break;
                 }
@@ -131,7 +138,9 @@ public class APIManager : MonoBehaviour
     public IEnumerator TryLoadMatch()
     {
         _queueflag = true;
-        while (IsTicketValidOutput() && _queueflag)
+        TicketValid = true;
+        StartCoroutine(IsTicketValid());
+        while (TicketValid && _queueflag)
         {
             using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"+_token))
             {
@@ -140,12 +149,14 @@ public class APIManager : MonoBehaviour
                 switch (request.result)
                 {
                     case UnityWebRequest.Result.Success:
-                        if (request.downloadHandler.text == "0" && TestFlag == false) {
+                        if (request.downloadHandler.text == "0") 
+                        {
                             uiManager.TriggerWaitingText();
+                            new WaitForSecondsRealtime(1);
                             Debug.Log("Match Not Found");
                             break;
                         }
-                        _queueflag = false;
+                        _MatchID = request.downloadHandler.text;
                         uiManager.MatchFound();
                         Debug.Log("result success");
                         break;
@@ -154,6 +165,12 @@ public class APIManager : MonoBehaviour
 
                 }
             }
+        }
+
+        if (!TicketValid)
+        {
+            uiManager.LeftQueue();
+            StartCoroutine(LeaveGame());
         }
     }
 
@@ -170,7 +187,41 @@ public class APIManager : MonoBehaviour
             {
                 case UnityWebRequest.Result.Success:
                     Debug.Log("Disconnect Attempt Post Successful");
+                    _queueflag = false;
                     uiManager.StartGame();
+                    break;
+            }
+        }
+    }
+
+    public IEnumerator AbandonMatch()
+    {
+        List<IMultipartFormSection> formData = new()
+        {
+            new MultipartFormDataSection("playerToken", _token.ToString())
+        };
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "AbandonMatch", formData))
+        {
+            yield return request.SendWebRequest();
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    Debug.Log("Disconnect Attempt Post Successful");
+                    break;
+            }
+        }
+    }
+
+    public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> StatusCallback)
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _MatchID + "&playerToken=" + _token))
+        {
+            yield return request.SendWebRequest();
+            Debug.Log(request.result);
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    StatusCallback(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
                     break;
             }
         }
@@ -188,9 +239,25 @@ public class APIManager : MonoBehaviour
                     uiManager.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
                     uiManager.UpdateQuestionUI();
                     break;
+            }
+        }
+    }
 
-
-
+    public IEnumerator AnswerQuestion(string answerID, System.Action<bool> answerResult)
+    {
+        List<IMultipartFormSection> formData = new()
+        {
+            new MultipartFormDataSection("playerToken", _token.ToString()),
+            new MultipartFormDataSection("answerID", answerID)
+        };
+        using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "AnswerQuestion", formData))
+        {
+            yield return request.SendWebRequest();
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    answerResult(request.downloadHandler.text == "true");
+                    break;
             }
         }
     }
