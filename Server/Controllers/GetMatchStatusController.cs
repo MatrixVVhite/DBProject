@@ -8,10 +8,10 @@ namespace Server.Controllers
 	[ApiController]
 	public class GetMatchStatusController : ControllerBase
 	{
-		[HttpGet("{matchID}")]
-		public JsonDict Get(int matchID)
+		[HttpGet]
+		public JsonDict Get(int matchID, int playerToken)
 		{
-			return DatabaseManager.Instance.GetMatchStatus(matchID);
+			return DatabaseManager.Instance.GetMatchStatus(matchID, playerToken);
 		}
 	}
 }

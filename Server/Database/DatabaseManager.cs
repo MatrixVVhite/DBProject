@@ -199,10 +199,13 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="matchID">Unique ID of the match to check</param>
 		/// <returns>A dictionary with all the relevant info</returns>
-		public JsonDict GetMatchStatus(int matchID)
+		public JsonDict GetMatchStatus(int matchID, int playerToken)
 		{
+			int callerID = GetPlayerID(playerToken);
 			int player1ID = GetPlayer1IDFromLobby(matchID);
 			int player2ID = GetPlayer2IDFromLobby(matchID);
+			int callerIs;
+			if (callerID == player1ID) { callerIs = 1; } else { callerIs = 2; }
 			int player1Score = GetPlayerScore(player1ID);
 			int player2Score = GetPlayerScore(player2ID);
 			string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
@@ -217,6 +220,7 @@ namespace Server.Database
 			int gameActiveStatus = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString());
 			var dataToSend = new JsonDict()
 			{
+				{ "YouAre", callerIs },
 				{ "P1Score", player1Score },
 				{ "P2Score", player2Score },
 				{ "P1QuestionsAnswered", p1QuestionsAnswered },
@@ -339,6 +343,27 @@ namespace Server.Database
 		{
             string acceptMatchTo0Statement = $"UPDATE queue SET AcceptMatch = 0 WHERE (PlayerID = {playerID});";
             return ExecuteInsertUpdate(acceptMatchTo0Statement) > 0;
+        }
+
+		private bool ChangeGameActiveStatus(int lobbyID, int newStatus) //0 for inactive, 1 for both players active, 2 for waiting for last player
+		{
+			string statement = $"UPDATE lobbies SET IsGameActive = {newStatus} WHERE (LobbyID = {lobbyID});";
+			return ExecuteInsertUpdate(statement) > 0;
+        }
+
+		private bool RemovePlayerFromLobby(int playerID, int lobbyID)
+		{
+			int p1ID = GetPlayer1IDFromLobby(lobbyID);
+			if (p1ID == playerID)
+			{
+                string statement = $"UPDATE lobbies SET Player1ID = 0 WHERE (LobbyID = {lobbyID});";
+                return ExecuteInsertUpdate(statement) > 0;
+            }
+			else
+			{
+                string statement = $"UPDATE lobbies SET Player2ID = 0 WHERE (LobbyID = {lobbyID});";
+                return ExecuteInsertUpdate(statement) > 0;
+            }
         }
 
 		private bool RemovePlayerLobbyNumber(int playerID)
@@ -541,7 +566,20 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int lobbyID = GetPlayerLobby(playerID);
-			return EndMatch(lobbyID);
+			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {lobbyID};";
+            int gameActiveStatus = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString());
+			if (gameActiveStatus != 2) 
+			{
+                bool changeActiveStatus = ChangeGameActiveStatus(lobbyID, 2);
+                bool exitMatch =  ExitMatch(playerID);
+				return changeActiveStatus && exitMatch;
+			}
+			else 
+			{ 
+				bool exitMatch = ExitMatch(playerID); 
+				bool endMatch = EndMatch(lobbyID);
+				return exitMatch && endMatch;
+			}
 		}
 
 		/// <summary>
@@ -604,25 +642,27 @@ namespace Server.Database
 			//Then use RemovePlayerTicket(int playerToken) on the inactive player
 			int player1ID = GetPlayer1IDFromLobby(matchID);
 			int player2ID = GetPlayer2IDFromLobby(matchID);
-			string statement = $"UPDATE lobbies SET IsGameActive = 1 WHERE (LobbyID = {matchID});";
-			bool test1 = ExecuteInsertUpdate(statement) > 0;
-			bool test2 = UpdatePlayerStatus(player1ID, 2);
-			bool test3 = UpdatePlayerStatus(player2ID, 2);
-			return test1 & test2 & test3;
+			bool updateGameStatus = ChangeGameActiveStatus(matchID, 1);
+			bool updateP1Status = UpdatePlayerStatus(player1ID, 2);
+			bool updateP2Status = UpdatePlayerStatus(player2ID, 2);
+			return updateGameStatus & updateP1Status & updateP2Status;
+		}
+
+		private bool ExitMatch(int playerID)
+		{
+			int lobbyID = GetPlayerLobby(playerID);
+			bool removeStats = RemovePlayerStats(playerID);
+            bool removeLobbyNum = RemovePlayerLobbyNumber(playerID);
+			bool removePlayerFromLobby = RemovePlayerFromLobby(playerID, lobbyID);
+            int playerToken = GetPlayerToken(playerID);
+			bool removeTicket = RemovePlayerTicket(playerToken);
+            return removeStats & removeLobbyNum & removePlayerFromLobby & removeTicket;
 		}
 
 		private bool EndMatch(int matchID)
 		{
-			int player1ID = GetPlayer1IDFromLobby(matchID);
-			int player2ID = GetPlayer2IDFromLobby(matchID);
-			bool test1 = RemovePlayerStats(player1ID);
-			bool test2 = RemovePlayerStats(player2ID);
-			bool test3 = RemovePlayerLobbyNumber(player1ID);
-			bool test4 = RemovePlayerLobbyNumber(player2ID);
-			bool test5 = RemovePlayerTicketByID(player1ID);
-			bool test6 = RemovePlayerTicketByID(player2ID);
-			bool test7 = RemoveLobby(matchID);
-			return test1 & test2 & test3 & test4 & test5 & test6 & test7;
+			bool removeLobby = RemoveLobby(matchID);
+			return removeLobby;
 		}
 		#endregion
 		#endregion
