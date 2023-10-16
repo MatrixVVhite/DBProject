@@ -5,7 +5,7 @@ namespace Server.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class AbandonMatchController : ControllerBase
+	public class LeaveMatchController : ControllerBase
 	{
 		[HttpPost]
 		public bool Post([FromForm] int playerToken)
@@ -14,4 +14,3 @@ namespace Server.Controllers
 		}
 	}
 }
- 
