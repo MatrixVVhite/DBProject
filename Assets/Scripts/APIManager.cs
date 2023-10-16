@@ -138,6 +138,8 @@ public class APIManager : MonoBehaviour
     public IEnumerator TryLoadMatch()
     {
         _queueflag = true;
+        TicketValid = true;
+        StartCoroutine(IsTicketValid());
         while (TicketValid && _queueflag)
         {
             using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"+_token))
