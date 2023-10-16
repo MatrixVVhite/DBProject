@@ -144,6 +144,7 @@ namespace Server.Database
 
 		public JsonDict GetQuestion(int id)
 		{
+			if (id > 10) { return null; }
 			string query = $"SELECT * FROM questions WHERE QuestionID = {id};";
 			return ExecuteQuery(query);
 		}
@@ -241,7 +242,8 @@ namespace Server.Database
 			int playerID = GetPlayerID(playerToken);
 			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
 			int currentQuestionID = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
-			return GetQuestion(currentQuestionID);
+			if (currentQuestionID <= 10) { return GetQuestion(currentQuestionID); }
+			else return null;
 		}
 
 		private int GetPlayerScore(int playerID)
@@ -333,6 +335,12 @@ namespace Server.Database
 			return test;
 		}
 
+		private bool  AcceptMatchTo0(int playerID)
+		{
+            string acceptMatchTo0Statement = $"UPDATE queue SET AcceptMatch = 0 WHERE (PlayerID = {playerID});";
+            return ExecuteInsertUpdate(acceptMatchTo0Statement) > 0;
+        }
+
 		private bool RemovePlayerLobbyNumber(int playerID)
 		{
 			string statement = $"UPDATE players SET LobbyNumber = 0 WHERE (PlayerID = {playerID});";
@@ -349,11 +357,23 @@ namespace Server.Database
 		{
 			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
 			int currentQuestionNum = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
-			string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
-			return ExecuteInsertUpdate(add1ToCurrentQuestionStatement) > 0;
+			if (currentQuestionNum <= 10)
+			{
+                string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
+                return ExecuteInsertUpdate(add1ToCurrentQuestionStatement) > 0;
+            }
+			else return true;
 		}
 
-		private bool TestTwoStatements(string statement1, string statement2)
+        private bool AddScore(int playerID)
+        {
+			string getCurrentScore = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID};";
+			int currentScore = int.Parse(ExecuteQuery(getCurrentScore)["Score"].ToString());
+			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore + 10} WHERE (PlayerID = {playerID});";
+			return ExecuteInsertUpdate(addToCurrentScore) > 0;
+        }
+
+        private bool TestTwoStatements(string statement1, string statement2)
 		{
 			bool test1 = ExecuteInsertUpdate(statement1) != 0;
 			bool test2 = ExecuteInsertUpdate(statement2) > 0;
@@ -454,14 +474,16 @@ namespace Server.Database
 				int player2ID = GetPlayer2IDFromLobby(playerLobby);
 				if (player1ID == playerID) 
 				{
+					AcceptMatchTo0(player2ID);
 					SubmitPlayerTicket(GetPlayerToken(player2ID));
 					UpdatePlayerStatus(player2ID, 1);
 					RemovePlayerStats(player1ID);
                     RemovePlayerStats(player2ID);
                 }
 				else 
-				{ 
-					SubmitPlayerTicket(GetPlayerToken(player1ID));
+				{
+                    AcceptMatchTo0(player1ID);
+                    SubmitPlayerTicket(GetPlayerToken(player1ID));
 					UpdatePlayerStatus(player1ID, 1);
                     RemovePlayerStats(player1ID);
                     RemovePlayerStats(player2ID);
@@ -538,6 +560,7 @@ namespace Server.Database
 			{
 				if (answerID == int.Parse(ExecuteQuery(getCorrectAnswerQuery)["CorrectAnswer"].ToString())) 
 				{
+					AddScore(playerID);
 					Add1ToCurrentQuestion(playerID);
 					return true; 
 				}
