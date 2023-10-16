@@ -8,7 +8,7 @@ namespace Server.Controllers
 	public class DisconnectFromServerController : ControllerBase
 	{
 		[HttpPost]
-		public void Post([FromBody] int playerToken)
+		public void Post([FromForm] int playerToken)
 		{
 			DatabaseManager.Instance.RemovePlayer(playerToken);
 		}
