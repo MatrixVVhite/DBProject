@@ -8,25 +8,31 @@ public class ButtonManager : MonoBehaviour
 {
     [SerializeField] TMP_Text answer;
     [SerializeField] UIManager manager;
-    [SerializeField] Image button;
+    [SerializeField] Image buttonVisual;
+    [SerializeField] Button button;
     [SerializeField] Color defaultColor;
     private string AnswerID;
-    bool flag;
     
 
     public void updateAnswer(string answerID, string Text)
     {
-        button.color = defaultColor;
+        buttonVisual.color = defaultColor;
         AnswerID = answerID;
         answer.text = Text;
+        button.interactable = true;
     }
 
 
     public void SubmitAnswer()
     {
-        flag = manager.SubmitAnswer(AnswerID);
-        defaultColor = button.color;
-        if (flag)  button.color = Color.green;
-        else button.color = Color.red;
+        StartCoroutine(manager.SubmitAnswer(AnswerID, this));
+        button.interactable = false;
+    }
+
+    public void ColorResponse(bool flag)
+    {
+        defaultColor = buttonVisual.color;
+        if (flag) buttonVisual.color = Color.green;
+        else buttonVisual.color = Color.red;
     }
 }

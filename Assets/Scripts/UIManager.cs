@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class UIManager : MonoBehaviour
     #region Main Menu Fields
     [SerializeField] TMP_InputField PlayerName;
     [SerializeField] APIManager _APIManager;
+    [SerializeField] GameManager _GameManager;
     [SerializeField] Button StartGameBTN;
     [SerializeField] GameObject ReadyButton;
     [SerializeField] GameObject LeaveQueue;
@@ -61,12 +63,6 @@ public class UIManager : MonoBehaviour
         Game.SetActive(true);
     }
 
-    public void EndGame()
-    {
-        MainMenu.SetActive(true);
-        Game.SetActive(false);
-    }
-
     public void MatchFound()
     {
         StartGameBTN.interactable=true;
@@ -78,6 +74,10 @@ public class UIManager : MonoBehaviour
     #region Game Menu Fields
     [SerializeField] TextMeshProUGUI _Question;
     [SerializeField] ButtonManager[] _Answers;
+    [SerializeField] TextMeshProUGUI[] _playerStats;
+    [SerializeField] GameObject EndGameScreen;
+    [SerializeField] TextMeshProUGUI _finalMessage;
+    [SerializeField] Button ExitMatchEnd;
     private Dictionary<string, string> currentQuestion;
     #endregion
 
@@ -98,15 +98,40 @@ public class UIManager : MonoBehaviour
     
     }
 
-    public bool SubmitAnswer(string AnswerID)
+    public IEnumerator SubmitAnswer(string AnswerID, ButtonManager button)
     {
-        bool result = false;
-        StartCoroutine(_APIManager.AnswerQuestion(AnswerID, (isCorrect) => {
-            result = isCorrect; 
+        yield return StartCoroutine(_APIManager.AnswerQuestion(AnswerID, (isCorrect) => {
+            button.ColorResponse(isCorrect); 
         }));
-        return result;
+        yield return new WaitForSeconds(2);
+        _GameManager.LoadQuestion();
+        
     }
 
+    public void UpdateScores(string yourScore, string otherScore, string yourQuestionsLeft, string otherQuestionsLeft)
+    {
+        _playerStats[0].text = "Your Score: \n" + yourScore;
+        _playerStats[1].text = "Opponent's Score: \n" + otherScore;
+        _playerStats[2].text = "Questions Left: \n" + yourQuestionsLeft;
+        _playerStats[3].text = "Questions Left: \n" + otherQuestionsLeft;
+
+    }
+
+    public void LoadEndScreen()
+    {
+        EndGameScreen.SetActive(true);
+    }
+
+    public void updateEndMessage(string message)
+    {
+        ExitMatchEnd.interactable = true;
+        _finalMessage.text = message;
+    }
+
+    public void ExitMatch()
+    {
+        StartCoroutine(_APIManager.AbandonMatch());
+    }
 
     #endregion
 
