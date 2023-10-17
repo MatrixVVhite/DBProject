@@ -191,6 +191,20 @@ namespace Server.Database
 		}
 
 		/// <summary>
+		/// Returns whether this player is inside a match.
+		/// Pings every few seconds if the player is waiting for other clients to accept.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Whether this player is inside a match</returns>
+		public bool GetMatchActive(int playerToken)
+		{
+			int matchID = GetMatchFound(playerToken);
+			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
+			bool gameActive = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString()) != (int)MatchStatus.Inactive;
+			return gameActive;
+		}
+
+		/// <summary>
 		/// Returns all relevant information about the match's status, such as:
 		/// Both players' scores.
 		/// How many questions both players have already answered.
@@ -635,7 +649,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="matchID">Unique ID of the match to start</param>
 		/// <returns>Success/Failure</returns>
-		private bool StartMatch(int matchID)
+		private bool StartMatch(int matchID) // TODO Remove accepting players from the waiting queue
 		{
 			//Get both players in the lobby. If both players signal 1 on queue - AcceptMatch, update both players' status to 2, and go through with the match
 			//If 1 player leaves or doesn't handshake in time, use EndMatch(matchID) and use SubmitPlayerTicket(int playerToken) on the active player
@@ -666,6 +680,15 @@ namespace Server.Database
 		}
 		#endregion
 		#endregion
+		#endregion
+
+		#region
+		enum MatchStatus
+		{
+			Inactive = 0,
+			ActiveBothPlayers = 1,
+			ActiveOnePlayer = 2
+		}
 		#endregion
 	}
 }
