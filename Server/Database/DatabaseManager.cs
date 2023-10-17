@@ -142,6 +142,22 @@ namespace Server.Database
 			return DataTableToDictionary(dt);
 		}
 
+		private string ExecuteQueryString(string query, string? key = null)
+		{
+			JsonDict dict = ExecuteQuery(query);
+			return (key == null ? dict.ElementAt(0).Value : dict[key]).ToString();
+		}
+
+		private int ExecuteQueryInt(string query, string? key = null)
+		{
+			return int.Parse(ExecuteQueryString(query, key));
+		}
+
+		private bool ExecuteQueryBool(string query, string? key = null)
+		{
+			return ExecuteQueryInt(query, key) != 0;
+		}
+
 		public JsonDict GetQuestion(int id)
 		{
 			if (id > 10)
