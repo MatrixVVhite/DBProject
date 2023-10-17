@@ -186,10 +186,10 @@ namespace Server.Database
 		public bool GetTicketExists(int playerToken)
 		{
 			string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken} LIMIT 1;";
-			int playerID = int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
+			int playerID = ExecuteQueryInt(getPlayerQuery);
 			string query = $"SELECT PlayerID FROM queue WHERE PlayerID = {playerID} LIMIT 1;";
-			var result = ExecuteQuery(query);
-			return result.Count != 0;
+			bool result = ExecuteQueryInt(query) == playerID;
+			return result;
 		}
 
 		/// <summary>
@@ -203,7 +203,6 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby = GetPlayerLobby(playerID);
-
 			return playerLobby;
 		}
 
@@ -217,7 +216,7 @@ namespace Server.Database
 		{
 			int matchID = GetMatchFound(playerToken);
 			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
-			bool gameActive = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString()) != (int)MatchStatus.Inactive;
+			bool gameActive = (MatchStatus)ExecuteQueryInt(getGameActiveStatus) != MatchStatus.Inactive;
 			return gameActive;
 		}
 
@@ -240,15 +239,15 @@ namespace Server.Database
 			int player1Score = GetPlayerScore(player1ID);
 			int player2Score = GetPlayerScore(player2ID);
 			string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
-			int currentP1QuestionID = int.Parse(ExecuteQuery(getP1CurrentQuestion)["CurrentQuestion"].ToString());
+			int currentP1QuestionID = ExecuteQueryInt(getP1CurrentQuestion);
 			string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player2ID};";
-			int currentP2QuestionID = int.Parse(ExecuteQuery(getP2CurrentQuestion)["CurrentQuestion"].ToString());
+			int currentP2QuestionID = ExecuteQueryInt(getP2CurrentQuestion);
 			int p1QuestionsAnswered = currentP1QuestionID - 1;
 			int p2QuestionsAnswered = currentP2QuestionID - 1;
 			int p1QuestionsLeft = 10 - p1QuestionsAnswered;
 			int p2QuestionsLeft = 10 - p2QuestionsAnswered;
 			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
-			int gameActiveStatus = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString());
+			int gameActiveStatus = ExecuteQueryInt(getGameActiveStatus);
 			var dataToSend = new JsonDict()
 			{
 				{ "YouAre", callerIs },
@@ -276,48 +275,54 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
-			int currentQuestionID = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
+			int currentQuestionID = ExecuteQueryInt(getCurrentQuestion);
 			if (currentQuestionID <= 10)
 				return GetQuestion(currentQuestionID);
 			else
-				return null;
+				return new JsonDict();
 		}
 
 		private int GetPlayerScore(int playerID)
 		{
 			string getPlayerScoreQuery = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID};";
-			return int.Parse(ExecuteQuery(getPlayerScoreQuery)["Score"].ToString());
+			return ExecuteQueryInt(getPlayerScoreQuery);
 		}
 
 		private int GetPlayerID(int playerToken)
 		{
 			string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken};";
-			return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerID"].ToString());
+			return ExecuteQueryInt(getPlayerQuery);
 		}
 
 		private int GetPlayerToken(int playerID)
 		{
 			string getPlayerQuery = $"SELECT PlayerToken FROM players WHERE PlayerID = {playerID};";
-			return int.Parse(ExecuteQuery(getPlayerQuery)["PlayerToken"].ToString());
+			return ExecuteQueryInt(getPlayerQuery);
 		}
 
 		private int GetPlayerLobby(int playerID)
 		{
 			string getLobbyQuery = $"SELECT LobbyID FROM lobbies WHERE (Player1ID = {playerID}) OR (Player2ID = {playerID});";
-			try { return int.Parse(ExecuteQuery(getLobbyQuery)["LobbyID"].ToString()); }
-			catch (Exception ex) { return 0; };
+			try
+			{
+				return ExecuteQueryInt(getLobbyQuery);
+			}
+			catch (Exception ex) // TODO State what exception you are catching
+			{
+				return 0;
+			};
 		}
 
-		private int GetPlayer1IDFromLobby(int LobbyID)
+		private int GetPlayer1IDFromLobby(int lobbyID)
 		{
-			string getPlayer1Query = $"SELECT Player1ID FROM lobbies WHERE LobbyID = {LobbyID};";
-			return int.Parse(ExecuteQuery(getPlayer1Query)["Player1ID"].ToString());
+			string getPlayer1Query = $"SELECT Player1ID FROM lobbies WHERE LobbyID = {lobbyID};";
+			return ExecuteQueryInt(getPlayer1Query);
 		}
 
-		private int GetPlayer2IDFromLobby(int LobbyID)
+		private int GetPlayer2IDFromLobby(int lobbyID)
 		{
-			string getPlayer2Query = $"SELECT Player2ID FROM lobbies WHERE LobbyID = {LobbyID};";
-			return int.Parse(ExecuteQuery(getPlayer2Query)["Player2ID"].ToString());
+			string getPlayer2Query = $"SELECT Player2ID FROM lobbies WHERE LobbyID = {lobbyID};";
+			return ExecuteQueryInt(getPlayer2Query);
 		}
 
 		private bool GetHandshakeStatusFromLobby(int lobbyID)
@@ -326,8 +331,8 @@ namespace Server.Database
 			int player2ID = GetPlayer2IDFromLobby(lobbyID);
 			string getP1Handshake = $"SELECT AcceptMatch FROM queue WHERE PlayerID = {player1ID};";
 			string getP2Handshake = $"SELECT AcceptMatch FROM queue WHERE PlayerID = {player2ID};";
-			int testP1Handshake = int.Parse(ExecuteQuery(getP1Handshake)["AcceptMatch"].ToString());
-			int testP2Handshake = int.Parse(ExecuteQuery(getP2Handshake)["AcceptMatch"].ToString());
+			int testP1Handshake = ExecuteQueryInt(getP1Handshake);
+			int testP2Handshake = ExecuteQueryInt(getP2Handshake);
 			return testP1Handshake == 1 & testP2Handshake == 1;
 		}
 		#endregion
@@ -355,7 +360,7 @@ namespace Server.Database
 			return rowsAffected;
 		}
 
-		private bool UpdatePlayerStatus(int PlayerID, PlayerStatus newStatus) //New status must be 0, 1 or 2
+		private bool UpdatePlayerStatus(int PlayerID, PlayerStatus newStatus)
 		{
 			string statement = $"UPDATE players SET PlayerStatus = {(int)newStatus} WHERE (PlayerID = {PlayerID});";
 			return ExecuteInsertUpdate(statement) > 0;
@@ -376,7 +381,7 @@ namespace Server.Database
 
 		private bool ChangeGameActiveStatus(int lobbyID, MatchStatus newStatus) //0 for inactive, 1 for both players active, 2 for waiting for last player
 		{
-			string statement = $"UPDATE lobbies SET IsGameActive = {newStatus} WHERE (LobbyID = {lobbyID});";
+			string statement = $"UPDATE lobbies SET IsGameActive = {(int)newStatus} WHERE (LobbyID = {lobbyID});";
 			return ExecuteInsertUpdate(statement) > 0;
         }
 
@@ -410,7 +415,7 @@ namespace Server.Database
 		private bool Add1ToCurrentQuestion(int playerID)
 		{
 			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
-			int currentQuestionNum = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
+			int currentQuestionNum = ExecuteQueryInt(getCurrentQuestion);
 			if (currentQuestionNum <= 10)
 			{
                 string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
@@ -422,7 +427,7 @@ namespace Server.Database
         private bool AddScore(int playerID)
         {
 			string getCurrentScore = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID};";
-			int currentScore = int.Parse(ExecuteQuery(getCurrentScore)["Score"].ToString());
+			int currentScore = ExecuteQueryInt(getCurrentScore);
 			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore + 10} WHERE (PlayerID = {playerID});";
 			return ExecuteInsertUpdate(addToCurrentScore) > 0;
         }
@@ -501,12 +506,12 @@ namespace Server.Database
 
 			string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM queue INNER JOIN " +
 				$"players ON queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0;";
-			if (int.Parse(ExecuteQuery(getLFGPlayersInQueue)["COUNT(queue.PlayerID)"].ToString()) > 1)
+			if (ExecuteQueryInt(getLFGPlayersInQueue) > 1)
 			{
 				string getPlayer2Query = $"SELECT queue.PlayerID FROM queue INNER JOIN players ON " +
 					$"queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0 AND " +
 					$"queue.PlayerID != {playerID} LIMIT 1;";
-				int player2ID = int.Parse(ExecuteQuery(getPlayer2Query)["PlayerID"].ToString());
+				int player2ID = ExecuteQueryInt(getPlayer2Query);
 				int[] players = new int[2] { playerID, player2ID };
 				CreateMatch(players);
 			}
@@ -600,7 +605,7 @@ namespace Server.Database
 			int playerID = GetPlayerID(playerToken);
 			int lobbyID = GetPlayerLobby(playerID);
 			string getMatchStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {lobbyID};";
-            MatchStatus matchStatus = (MatchStatus)int.Parse(ExecuteQuery(getMatchStatus)["IsGameActive"].ToString());
+            MatchStatus matchStatus = (MatchStatus)ExecuteQueryInt(getMatchStatus);
 			if (matchStatus != MatchStatus.ActiveOnePlayer)
 			{
                 bool changeActiveStatus = ChangeGameActiveStatus(lobbyID, MatchStatus.ActiveOnePlayer);
@@ -629,7 +634,7 @@ namespace Server.Database
 				$"`session stats`.PlayerID = {playerID};";
 			try
 			{
-				if (answerID == int.Parse(ExecuteQuery(getCorrectAnswerQuery)["CorrectAnswer"].ToString())) 
+				if (answerID == ExecuteQueryInt(getCorrectAnswerQuery)) 
 				{
 					AddScore(playerID);
 					Add1ToCurrentQuestion(playerID);
@@ -641,7 +646,7 @@ namespace Server.Database
 					return false;
 				}
 			}
-			catch (Exception ex) 
+			catch (Exception ex) // TODO State what exception you are catching
 			{
 				Add1ToCurrentQuestion(playerID);
 				return false;
@@ -701,7 +706,7 @@ namespace Server.Database
 		#endregion
 		#endregion
 
-		#region
+		#region ENUMS
 		enum PlayerStatus
 		{
 			MainMenu = 0,
