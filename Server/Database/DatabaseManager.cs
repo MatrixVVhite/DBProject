@@ -144,7 +144,8 @@ namespace Server.Database
 
 		public JsonDict GetQuestion(int id)
 		{
-			if (id > 10) { return null; }
+			if (id > 10)
+				return null;
 			string query = $"SELECT * FROM questions WHERE QuestionID = {id};";
 			return ExecuteQuery(query);
 		}
@@ -260,8 +261,10 @@ namespace Server.Database
 			int playerID = GetPlayerID(playerToken);
 			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
 			int currentQuestionID = int.Parse(ExecuteQuery(getCurrentQuestion)["CurrentQuestion"].ToString());
-			if (currentQuestionID <= 10) { return GetQuestion(currentQuestionID); }
-			else return null;
+			if (currentQuestionID <= 10)
+				return GetQuestion(currentQuestionID);
+			else
+				return null;
 		}
 
 		private int GetPlayerScore(int playerID)
@@ -309,11 +312,7 @@ namespace Server.Database
 			string getP2Handshake = $"SELECT AcceptMatch FROM queue WHERE PlayerID = {player2ID};";
 			int testP1Handshake = int.Parse(ExecuteQuery(getP1Handshake)["AcceptMatch"].ToString());
 			int testP2Handshake = int.Parse(ExecuteQuery(getP2Handshake)["AcceptMatch"].ToString());
-			if (testP1Handshake == 1 & testP2Handshake == 1)
-			{
-				return true;
-			}
-			else { return false; }
+			return testP1Handshake == 1 & testP2Handshake == 1;
 		}
 		#endregion
 
@@ -340,9 +339,9 @@ namespace Server.Database
 			return rowsAffected;
 		}
 
-		private bool UpdatePlayerStatus(int PlayerID, int newStatus) //New status must be 0, 1 or 2
+		private bool UpdatePlayerStatus(int PlayerID, PlayerStatus newStatus) //New status must be 0, 1 or 2
 		{
-			string statement = $"UPDATE players SET PlayerStatus = {newStatus} WHERE (PlayerID = {PlayerID});";
+			string statement = $"UPDATE players SET PlayerStatus = {(int)newStatus} WHERE (PlayerID = {PlayerID});";
 			return ExecuteInsertUpdate(statement) > 0;
 		}
 
@@ -353,13 +352,13 @@ namespace Server.Database
 			return test;
 		}
 
-		private bool  AcceptMatchTo0(int playerID)
+		private bool AcceptMatchTo0(int playerID)
 		{
             string acceptMatchTo0Statement = $"UPDATE queue SET AcceptMatch = 0 WHERE (PlayerID = {playerID});";
             return ExecuteInsertUpdate(acceptMatchTo0Statement) > 0;
         }
 
-		private bool ChangeGameActiveStatus(int lobbyID, int newStatus) //0 for inactive, 1 for both players active, 2 for waiting for last player
+		private bool ChangeGameActiveStatus(int lobbyID, MatchStatus newStatus) //0 for inactive, 1 for both players active, 2 for waiting for last player
 		{
 			string statement = $"UPDATE lobbies SET IsGameActive = {newStatus} WHERE (LobbyID = {lobbyID});";
 			return ExecuteInsertUpdate(statement) > 0;
@@ -440,8 +439,10 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby;
-			if (GetPlayerLobby(playerID) != 0) { playerLobby = GetPlayerLobby(playerID); }
-			else { playerLobby = 0; }
+			if (GetPlayerLobby(playerID) != 0)
+				playerLobby = GetPlayerLobby(playerID);
+			else
+				playerLobby = 0;
 			if (playerLobby != 0)
 			{
 				int player1ID = GetPlayer1IDFromLobby(playerLobby);
@@ -451,14 +452,14 @@ namespace Server.Database
 					RemovePlayerStats(player1ID);
 					RemovePlayerStats(player2ID);
 					SubmitPlayerTicket(GetPlayerToken(player2ID));
-					UpdatePlayerStatus(player2ID, 1);
+					UpdatePlayerStatus(player2ID, PlayerStatus.Queue);
 				}
 				else 
 				{
 					RemovePlayerStats(player1ID);
 					RemovePlayerStats(player2ID);
 					SubmitPlayerTicket(GetPlayerToken(player1ID));
-					UpdatePlayerStatus(player1ID, 1);
+					UpdatePlayerStatus(player1ID, PlayerStatus.Queue);
 				}
 				RemoveLobby(playerLobby);
 			}
@@ -480,7 +481,7 @@ namespace Server.Database
 			bool removeLobbyNumber = RemovePlayerLobbyNumber(playerID);
 			string insertIntoQueueStatement = $"INSERT IGNORE INTO queue (`PlayerID`) VALUES ({playerID});";
 			bool insertIntoQueue = ExecuteInsertUpdate(insertIntoQueueStatement) > 0;
-			bool updateStatus = UpdatePlayerStatus(playerID, 1);
+			bool updateStatus = UpdatePlayerStatus(playerID, PlayerStatus.Queue);
 
 			string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM queue INNER JOIN " +
 				$"players ON queue.PlayerID = players.PlayerID WHERE AcceptMatch = 0 AND LobbyNumber = 0;";
@@ -505,8 +506,10 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby;
-			if (GetPlayerLobby(playerID) != 0) { playerLobby = GetPlayerLobby(playerID); }
-			else { playerLobby = 0; }
+			if (GetPlayerLobby(playerID) != 0)
+				playerLobby = GetPlayerLobby(playerID);
+			else
+				playerLobby = 0;
 			if (playerLobby != 0)
 			{
 				int player1ID = GetPlayer1IDFromLobby(playerLobby);
@@ -515,7 +518,7 @@ namespace Server.Database
 				{
 					AcceptMatchTo0(player2ID);
 					SubmitPlayerTicket(GetPlayerToken(player2ID));
-					UpdatePlayerStatus(player2ID, 1);
+					UpdatePlayerStatus(player2ID, PlayerStatus.Queue);
 					RemovePlayerStats(player1ID);
                     RemovePlayerStats(player2ID);
                 }
@@ -523,7 +526,7 @@ namespace Server.Database
 				{
                     AcceptMatchTo0(player1ID);
                     SubmitPlayerTicket(GetPlayerToken(player1ID));
-					UpdatePlayerStatus(player1ID, 1);
+					UpdatePlayerStatus(player1ID, PlayerStatus.Queue);
                     RemovePlayerStats(player1ID);
                     RemovePlayerStats(player2ID);
                 }
@@ -564,7 +567,7 @@ namespace Server.Database
 				bool insertP1Stats = ExecuteInsertUpdate(insertP1StatsStatement) > 0;
 				bool insertP2Stats = ExecuteInsertUpdate(insertP2StatsStatement) > 0;
                 bool startMatch = StartMatch(lobbyID);
-				return updateQueueAccept && insertP1Stats && insertP2Stats && startMatch;
+				return updateQueueAccept & insertP1Stats & insertP2Stats & startMatch;
 			}
 			else { return updateQueueAccept; }
 			//Each player will send a JoinMatch(playerToken) check when they click accept match in game,
@@ -580,19 +583,19 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int lobbyID = GetPlayerLobby(playerID);
-			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {lobbyID};";
-            int gameActiveStatus = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString());
-			if (gameActiveStatus != 2) 
+			string getMatchStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {lobbyID};";
+            MatchStatus matchStatus = (MatchStatus)int.Parse(ExecuteQuery(getMatchStatus)["IsGameActive"].ToString());
+			if (matchStatus != MatchStatus.ActiveOnePlayer)
 			{
-                bool changeActiveStatus = ChangeGameActiveStatus(lobbyID, 2);
+                bool changeActiveStatus = ChangeGameActiveStatus(lobbyID, MatchStatus.ActiveOnePlayer);
                 bool exitMatch =  ExitMatch(playerID);
-				return changeActiveStatus && exitMatch;
+				return changeActiveStatus & exitMatch;
 			}
-			else 
+			else
 			{ 
 				bool exitMatch = ExitMatch(playerID); 
 				bool endMatch = EndMatch(lobbyID);
-				return exitMatch && endMatch;
+				return exitMatch & endMatch;
 			}
 		}
 
@@ -639,8 +642,8 @@ namespace Server.Database
 			string statement1 = $"INSERT INTO lobbies (Player1ID, Player2ID) VALUES ({playerIDs[0]}, {playerIDs[1]});";
 			bool insertIntoLobby = ExecuteInsertUpdate(statement1) > 0;
 			int lobbyNumber = GetPlayerLobby(playerIDs[0]); //Creates and returns the lobby number
-			string updateP1LobbyNum = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
-			string updateP2LobbyNum = $"UPDATE players SET PlayerStatus = 2, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
+			string updateP1LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
+			string updateP2LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
 			return insertIntoLobby & TestTwoStatements(updateP1LobbyNum, updateP2LobbyNum);
 		}
 
@@ -656,9 +659,9 @@ namespace Server.Database
 			//Then use RemovePlayerTicket(int playerToken) on the inactive player
 			int player1ID = GetPlayer1IDFromLobby(matchID);
 			int player2ID = GetPlayer2IDFromLobby(matchID);
-			bool updateGameStatus = ChangeGameActiveStatus(matchID, 1);
-			bool updateP1Status = UpdatePlayerStatus(player1ID, 2);
-			bool updateP2Status = UpdatePlayerStatus(player2ID, 2);
+			bool updateGameStatus = ChangeGameActiveStatus(matchID, MatchStatus.ActiveBothPlayers);
+			bool updateP1Status = UpdatePlayerStatus(player1ID, PlayerStatus.Lobby);
+			bool updateP2Status = UpdatePlayerStatus(player2ID, PlayerStatus.Lobby);
 			return updateGameStatus & updateP1Status & updateP2Status;
 		}
 
@@ -683,6 +686,13 @@ namespace Server.Database
 		#endregion
 
 		#region
+		enum PlayerStatus
+		{
+			MainMenu = 0,
+			Queue = 1,
+			Lobby = 2
+		}
+
 		enum MatchStatus
 		{
 			Inactive = 0,
