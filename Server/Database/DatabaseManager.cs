@@ -10,8 +10,6 @@ namespace Server.Database
 		#region FIELDS
 		#region SQL_FIELDS
 		private const string CON_STR = "Server=localhost; database=finalprojectdb; UID=root; password=rootPass";
-		private MySqlConnection _conn;
-		private MySqlDataAdapter _data;
 		#endregion
 
 		#region SINGLETON_PROPERTIES
@@ -22,57 +20,11 @@ namespace Server.Database
 		#endregion
 
 		#region METHODS
-		#region CONSTRUCTORS
-		public DatabaseManager()
-		{
-			DefineConnection();
-		}
-		#endregion
-
 		#region UTILITY
-		#region CONNECTION
-		private bool TryConnect()
+		#region CREATE_COMMAND
+		private static MySqlCommand CreateCommand(string statement, MySqlConnection conn)
 		{
-			bool success;
-			try
-			{
-				OpenConnection();
-				success = true;
-			}
-			catch (MySqlException e)
-			{
-				Debug.Write(e);
-				CloseConnection();
-				success = false;
-			}
-			return success;
-		}
-
-		private void DefineConnection()
-		{
-			_conn = new MySqlConnection(CON_STR);
-		}
-
-		private void OpenConnection()
-		{
-			_conn.Open();
-		}
-
-		private void CloseConnection()
-		{
-			_conn.Close();
-		}
-		#endregion
-
-		#region COMMAND
-		private int ExecuteCommand(string statement)
-		{
-			return CreateCommand(statement).ExecuteNonQuery();
-		}
-
-		private MySqlCommand CreateCommand(string statement)
-		{
-			var cmd = _conn.CreateCommand();
+			var cmd = conn.CreateCommand();
 			cmd.CommandType = CommandType.Text;
 			cmd.CommandText = statement;
 			return cmd;
@@ -120,19 +72,36 @@ namespace Server.Database
 			return dict;
 		}
 		#endregion
-		#endregion
 
-		#region MYSQL_STATEMENTS
-		#region QUERIES
-		private JsonDict ExecuteQuery(string query)
+		#region STATEMENTS
+		private static int ExecuteCommand(string statement)
 		{
-			Debug.Assert(query.ToLower().Contains("select"));
-			_data = new MySqlDataAdapter(query, _conn);
-			_data.SelectCommand.CommandType = CommandType.Text;
-			var dt = new DataTable();
+			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update") || statement.ToLower().Contains("delete"));
+			using var conn = new MySqlConnection(CON_STR);
+			int rowsAffected = 0;
+			conn.Open();
 			try
 			{
-				_data.Fill(dt);
+				rowsAffected = CreateCommand(statement, conn).ExecuteNonQuery();
+			}
+			catch (MySqlException ex)
+			{
+				Debug.WriteLine(ex);
+			}
+			return rowsAffected;
+		}
+
+		private static JsonDict ExecuteQuery(string query)
+		{
+			Debug.Assert(query.ToLower().Contains("select"));
+			var dt = new DataTable();
+			using var conn = new MySqlConnection(CON_STR);
+			MySqlDataAdapter dataAdapter = new(query, conn);
+			dataAdapter.SelectCommand.CommandType = CommandType.Text;
+			conn.Open();
+			try
+			{
+				dataAdapter.Fill(dt);
 			}
 			catch (MySqlException ex)
 			{
@@ -142,6 +111,7 @@ namespace Server.Database
 			return DataTableToDictionary(dt);
 		}
 
+		#region UNSAFE
 		private string ExecuteQueryString(string query, string? key = null)
 		{
 			JsonDict dict = ExecuteQuery(query);
@@ -157,13 +127,76 @@ namespace Server.Database
 		{
 			return ExecuteQueryInt(query, key) != 0;
 		}
+		#endregion
 
-		public JsonDict GetQuestion(int id)
+		#region SAFE
+		private bool ExecuteQueryExists(string query, string? key = null)
 		{
-			if (id > 10)
-				return null;
-			string query = $"SELECT * FROM questions WHERE QuestionID = {id};";
-			return ExecuteQuery(query);
+			return TryExecuteQuery(query, out bool _, key);
+		}
+
+		private bool TryExecuteQuery(string query, ref string val, string? key = null)
+		{
+			val = string.Empty;
+			try
+			{
+				val = ExecuteQueryString(query, key);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private bool TryExecuteQuery(string query, out int val, string? key = null)
+		{
+			val = 0;
+			try
+			{
+				val = ExecuteQueryInt(query, key);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private bool TryExecuteQuery(string query, out bool val, string? key = null)
+		{
+			val = false;
+			try
+			{
+				val = ExecuteQueryBool(query, key);
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+		#endregion
+		#endregion
+		#endregion
+
+		#region MYSQL_STATEMENTS
+		#region STRING_ONLY
+		string QueryPlayerID(int playerToken) => $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken} LIMIT 1";
+
+		string QueryPlayerToken(int playerID) => $"SELECT PlayerToken FROM players WHERE PlayerID = {playerID} LIMIT 1";
+		#endregion
+
+		#region QUERIES
+		public JsonDict GetQuestion(int questionID)
+		{
+			if (questionID > 10)
+				return new JsonDict(); // TODO Test if this is even needed
+			else
+			{
+				string query = $"SELECT * FROM questions WHERE QuestionID = {questionID};";
+				return ExecuteQuery(query);
+			}
 		}
 
 		/// <summary>
@@ -174,8 +207,7 @@ namespace Server.Database
 		public bool GetPlayerTokenExists(int playerToken)
 		{
 			string query = $"SELECT PlayerToken FROM players WHERE PlayerToken = {playerToken} LIMIT 1;";
-			var result = ExecuteQuery(query);
-			return result.Count != 0;
+			return ExecuteQueryExists(query);
 		}
 
 		/// <summary>
@@ -185,11 +217,8 @@ namespace Server.Database
 		/// <returns>Whether this player has a ticket</returns>
 		public bool GetTicketExists(int playerToken)
 		{
-			string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken} LIMIT 1;";
-			int playerID = ExecuteQueryInt(getPlayerQuery);
-			string query = $"SELECT PlayerID FROM queue WHERE PlayerID = {playerID} LIMIT 1;";
-			bool result = ExecuteQueryInt(query) == playerID;
-			return result;
+			string query = $"SELECT PlayerID FROM queue WHERE PlayerID = ({QueryPlayerID(playerToken)}) LIMIT 1;";
+			return ExecuteQueryExists(query);
 		}
 
 		/// <summary>
@@ -215,9 +244,16 @@ namespace Server.Database
 		public bool GetMatchActive(int playerToken)
 		{
 			int matchID = GetMatchFound(playerToken);
-			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
-			bool gameActive = (MatchStatus)ExecuteQueryInt(getGameActiveStatus) != MatchStatus.Inactive;
-			return gameActive;
+			if (matchID != 0)
+			{
+				string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
+				bool gameActive = (MatchStatus)ExecuteQueryInt(getGameActiveStatus) != MatchStatus.Inactive;
+				return gameActive;
+			}
+			else
+			{
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -231,11 +267,11 @@ namespace Server.Database
 		/// <returns>A dictionary with all the relevant info</returns>
 		public JsonDict GetMatchStatus(int matchID, int playerToken)
 		{
+			// TODO Check if match even exists
 			int callerID = GetPlayerID(playerToken);
 			int player1ID = GetPlayer1IDFromLobby(matchID);
 			int player2ID = GetPlayer2IDFromLobby(matchID);
-			int callerIs;
-			if (callerID == player1ID) { callerIs = 1; } else { callerIs = 2; }
+			int callerIs = callerID == player1ID ? 1 : 2;
 			int player1Score = GetPlayerScore(player1ID);
 			int player2Score = GetPlayerScore(player2ID);
 			string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
@@ -275,8 +311,7 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
-			int currentQuestionID = ExecuteQueryInt(getCurrentQuestion);
-			if (currentQuestionID <= 10)
+			if (TryExecuteQuery(getCurrentQuestion, out int currentQuestionID) && currentQuestionID <= 10)
 				return GetQuestion(currentQuestionID);
 			else
 				return new JsonDict();
@@ -290,27 +325,23 @@ namespace Server.Database
 
 		private int GetPlayerID(int playerToken)
 		{
-			string getPlayerQuery = $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken};";
+			string getPlayerQuery = $"{QueryPlayerID(playerToken)};"; // TODO Test if I need this line
 			return ExecuteQueryInt(getPlayerQuery);
 		}
 
 		private int GetPlayerToken(int playerID)
 		{
-			string getPlayerQuery = $"SELECT PlayerToken FROM players WHERE PlayerID = {playerID};";
+			string getPlayerQuery = $"{QueryPlayerToken(playerID)};"; // TODO Test if I need this line
 			return ExecuteQueryInt(getPlayerQuery);
 		}
 
 		private int GetPlayerLobby(int playerID)
 		{
 			string getLobbyQuery = $"SELECT LobbyID FROM lobbies WHERE (Player1ID = {playerID}) OR (Player2ID = {playerID});";
-			try
-			{
-				return ExecuteQueryInt(getLobbyQuery);
-			}
-			catch (Exception ex) // TODO State what exception you are catching
-			{
+			if (TryExecuteQuery(getLobbyQuery, out int lobby))
+				return lobby;
+			else
 				return 0;
-			};
 		}
 
 		private int GetPlayer1IDFromLobby(int lobbyID)
@@ -331,58 +362,36 @@ namespace Server.Database
 			int player2ID = GetPlayer2IDFromLobby(lobbyID);
 			string getP1Handshake = $"SELECT AcceptMatch FROM queue WHERE PlayerID = {player1ID};";
 			string getP2Handshake = $"SELECT AcceptMatch FROM queue WHERE PlayerID = {player2ID};";
-			int testP1Handshake = ExecuteQueryInt(getP1Handshake);
-			int testP2Handshake = ExecuteQueryInt(getP2Handshake);
-			return testP1Handshake == 1 & testP2Handshake == 1;
+			bool testP1Handshake = ExecuteQueryBool(getP1Handshake);
+			bool testP2Handshake = ExecuteQueryBool(getP2Handshake);
+			return testP1Handshake & testP2Handshake;
 		}
 		#endregion
 
-		#region INSERT/UPDATE/DELETE
-		private int ExecuteInsertUpdate(string statement)
-		{
-			Debug.Assert(statement.ToLower().Contains("insert") || statement.ToLower().Contains("update") || statement.ToLower().Contains("delete"));
-			int rowsAffected = 0;
-			if (TryConnect())
-			{
-				try
-				{
-					rowsAffected = ExecuteCommand(statement);
-				}
-				catch (MySqlException ex)
-				{
-					Debug.WriteLine(ex);
-				}
-				finally
-				{
-					CloseConnection();
-				}
-			}
-			return rowsAffected;
-		}
-
+		#region COMMAND
 		private bool UpdatePlayerStatus(int PlayerID, PlayerStatus newStatus)
 		{
 			string statement = $"UPDATE players SET PlayerStatus = {(int)newStatus} WHERE (PlayerID = {PlayerID});";
-			return ExecuteInsertUpdate(statement) > 0;
+			return ExecuteCommand(statement) > 0;
 		}
 
 		private bool RemovePlayerStats(int playerID)
 		{
 			string removeSessionStats = $"DELETE FROM `session stats` WHERE(PlayerID = {playerID});";
-			bool test = ExecuteInsertUpdate(removeSessionStats) > 0;
+			bool test = ExecuteCommand(removeSessionStats) > 0;
 			return test;
 		}
 
 		private bool AcceptMatchTo0(int playerID)
 		{
             string acceptMatchTo0Statement = $"UPDATE queue SET AcceptMatch = 0 WHERE (PlayerID = {playerID});";
-            return ExecuteInsertUpdate(acceptMatchTo0Statement) > 0;
+            return ExecuteCommand(acceptMatchTo0Statement) > 0;
         }
 
 		private bool ChangeGameActiveStatus(int lobbyID, MatchStatus newStatus) //0 for inactive, 1 for both players active, 2 for waiting for last player
 		{
 			string statement = $"UPDATE lobbies SET IsGameActive = {(int)newStatus} WHERE (LobbyID = {lobbyID});";
-			return ExecuteInsertUpdate(statement) > 0;
+			return ExecuteCommand(statement) > 0;
         }
 
 		private bool RemovePlayerFromLobby(int playerID, int lobbyID)
@@ -391,25 +400,25 @@ namespace Server.Database
 			if (p1ID == playerID)
 			{
                 string statement = $"UPDATE lobbies SET Player1ID = 0 WHERE (LobbyID = {lobbyID});";
-                return ExecuteInsertUpdate(statement) > 0;
+                return ExecuteCommand(statement) > 0;
             }
 			else
 			{
                 string statement = $"UPDATE lobbies SET Player2ID = 0 WHERE (LobbyID = {lobbyID});";
-                return ExecuteInsertUpdate(statement) > 0;
+                return ExecuteCommand(statement) > 0;
             }
         }
 
 		private bool RemovePlayerLobbyNumber(int playerID)
 		{
 			string statement = $"UPDATE players SET LobbyNumber = 0 WHERE (PlayerID = {playerID});";
-			return ExecuteInsertUpdate(statement) > 0;
+			return ExecuteCommand(statement) > 0;
 		}
 
 		private bool RemoveLobby(int lobbyID)
 		{
 			string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {lobbyID});";
-			return ExecuteInsertUpdate(deleteLobby) > 0;
+			return ExecuteCommand(deleteLobby) > 0;
 		}
 
 		private bool Add1ToCurrentQuestion(int playerID)
@@ -419,7 +428,7 @@ namespace Server.Database
 			if (currentQuestionNum <= 10)
 			{
                 string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
-                return ExecuteInsertUpdate(add1ToCurrentQuestionStatement) > 0;
+                return ExecuteCommand(add1ToCurrentQuestionStatement) > 0;
             }
 			else return true;
 		}
@@ -429,13 +438,13 @@ namespace Server.Database
 			string getCurrentScore = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID};";
 			int currentScore = ExecuteQueryInt(getCurrentScore);
 			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore + 10} WHERE (PlayerID = {playerID});";
-			return ExecuteInsertUpdate(addToCurrentScore) > 0;
+			return ExecuteCommand(addToCurrentScore) > 0;
         }
 
         private bool TestTwoStatements(string statement1, string statement2)
 		{
-			bool test1 = ExecuteInsertUpdate(statement1) != 0;
-			bool test2 = ExecuteInsertUpdate(statement2) > 0;
+			bool test1 = ExecuteCommand(statement1) != 0;
+			bool test2 = ExecuteCommand(statement2) > 0;
 			return test1 & test2;
 		}
 
@@ -448,7 +457,7 @@ namespace Server.Database
 		public bool AddNewPlayer(int playerToken, string playerName)
 		{
 			string statement = $"INSERT INTO players (PlayerName, PlayerToken) VALUES ('{playerName}', {playerToken});";
-			return ExecuteInsertUpdate(statement) > 0;
+			return ExecuteCommand(statement) > 0;
 		}
 
 		/// <summary>
@@ -485,9 +494,9 @@ namespace Server.Database
 				RemoveLobby(playerLobby);
 			}
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
-			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
+			bool deleteFromQueue = ExecuteCommand(deleteFromQueueQuery) > 0;
 			string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
-			bool deleteFromDB = ExecuteInsertUpdate(deleteFromDBStatement) > 0;
+			bool deleteFromDB = ExecuteCommand(deleteFromDBStatement) > 0;
 			return deleteFromQueue & deleteFromDB;
 		}
 
@@ -501,7 +510,7 @@ namespace Server.Database
 			int playerID = GetPlayerID(playerToken);
 			bool removeLobbyNumber = RemovePlayerLobbyNumber(playerID);
 			string insertIntoQueueStatement = $"INSERT IGNORE INTO queue (`PlayerID`) VALUES ({playerID});";
-			bool insertIntoQueue = ExecuteInsertUpdate(insertIntoQueueStatement) > 0;
+			bool insertIntoQueue = ExecuteCommand(insertIntoQueueStatement) > 0;
 			bool updateStatus = UpdatePlayerStatus(playerID, PlayerStatus.Queue);
 
 			string getLFGPlayersInQueue = $"SELECT COUNT(queue.PlayerID) FROM queue INNER JOIN " +
@@ -554,7 +563,7 @@ namespace Server.Database
 				RemoveLobby(playerLobby);
 			}
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
-			bool deleteFromQueue = ExecuteInsertUpdate(deleteFromQueueQuery) > 0;
+			bool deleteFromQueue = ExecuteCommand(deleteFromQueueQuery) > 0;
 			bool updateStatus = UpdatePlayerStatus (playerID, 0);
 			return deleteFromQueue & updateStatus;
 		}
@@ -562,7 +571,7 @@ namespace Server.Database
 		public bool RemovePlayerTicketByID(int playerID)
 		{
 			string deleteFromQueue = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
-			bool test1 = ExecuteInsertUpdate(deleteFromQueue) > 0;
+			bool test1 = ExecuteCommand(deleteFromQueue) > 0;
 			bool test2 = UpdatePlayerStatus(playerID, 0);
 			return test1 & test2;
 		}
@@ -577,7 +586,7 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			string statement = $"UPDATE queue SET AcceptMatch = 1 WHERE (PlayerID = {playerID});";
-			bool updateQueueAccept = ExecuteInsertUpdate(statement) > 0;
+			bool updateQueueAccept = ExecuteCommand(statement) > 0;
 			int lobbyID = GetPlayerLobby(playerID);
 			if (GetHandshakeStatusFromLobby(lobbyID))
 			{
@@ -585,8 +594,8 @@ namespace Server.Database
 				int p2ID = GetPlayer2IDFromLobby(lobbyID);
                 string insertP1StatsStatement = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({p1ID}, {lobbyID});";
                 string insertP2StatsStatement = $"INSERT INTO `session stats` (PlayerID, LobbyID) VALUES ({p2ID}, {lobbyID});";
-				bool insertP1Stats = ExecuteInsertUpdate(insertP1StatsStatement) > 0;
-				bool insertP2Stats = ExecuteInsertUpdate(insertP2StatsStatement) > 0;
+				bool insertP1Stats = ExecuteCommand(insertP1StatsStatement) > 0;
+				bool insertP2Stats = ExecuteCommand(insertP2StatsStatement) > 0;
                 bool startMatch = StartMatch(lobbyID);
 				return updateQueueAccept & insertP1Stats & insertP2Stats & startMatch;
 			}
@@ -661,7 +670,7 @@ namespace Server.Database
 		private bool CreateMatch(params int[] playerIDs)
 		{
 			string statement1 = $"INSERT INTO lobbies (Player1ID, Player2ID) VALUES ({playerIDs[0]}, {playerIDs[1]});";
-			bool insertIntoLobby = ExecuteInsertUpdate(statement1) > 0;
+			bool insertIntoLobby = ExecuteCommand(statement1) > 0;
 			int lobbyNumber = GetPlayerLobby(playerIDs[0]); //Creates and returns the lobby number
 			string updateP1LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
 			string updateP2LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
