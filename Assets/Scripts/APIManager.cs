@@ -172,6 +172,11 @@ public class APIManager : MonoBehaviour
                 case UnityWebRequest.Result.Success:
                     Debug.Log("Match Join Post Successful");
                     _queueflag = false;
+                    string joinBool = "false";
+                    while (joinBool == "false")
+                    {
+                        yield return IsMatchActive((callback) => { joinBool = callback; });
+                    }
                     yield return GetMatchStatus((newDict) => { game.RunGame(newDict); }) ;
                     uiManager.StartGame();
                     break;
@@ -196,6 +201,21 @@ public class APIManager : MonoBehaviour
             }
         }
         SceneManager.LoadScene(0);
+    }
+
+    public IEnumerator IsMatchActive(System.Action<string> StatusCallback)
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchActive/" + _token))
+        {
+            yield return request.SendWebRequest();
+            Debug.Log(request.result);
+            switch (request.result)
+            {
+                case UnityWebRequest.Result.Success:
+                    StatusCallback(request.downloadHandler.text);
+                    break;
+            }
+        }
     }
 
     public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> StatusCallback)

@@ -112,8 +112,8 @@ public class UIManager : MonoBehaviour
     {
         _playerStats[0].text = "Your Score: \n" + yourScore;
         _playerStats[1].text = "Opponent's Score: \n" + otherScore;
-        _playerStats[3].text = "Questions Left: \n" + yourQuestionsLeft;
-        _playerStats[4].text = "Questions Left: \n" + otherQuestionsLeft;
+        _playerStats[2].text = "Questions Left: \n" + yourQuestionsLeft;
+        _playerStats[3].text = "Questions Left: \n" + otherQuestionsLeft;
 
     }
 
