@@ -191,6 +191,17 @@ namespace Server.Database
 		}
 
 		/// <summary>
+		/// Returns whether this player is inside a match.
+		/// Pings every few seconds if the player is waiting for other clients to accept.
+		/// </summary>
+		/// <param name="playerToken">Unique token of the requesting player</param>
+		/// <returns>Whether this player is inside a match</returns>
+		public bool GetMatchActive(int playerToken)
+		{
+			throw new NotImplementedException();
+		}
+
+		/// <summary>
 		/// Returns all relevant information about the match's status, such as:
 		/// Both players' scores.
 		/// How many questions both players have already answered.
