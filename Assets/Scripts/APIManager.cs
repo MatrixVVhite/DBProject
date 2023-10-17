@@ -3,15 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using UnityEngine.SceneManagement;
 
 public class APIManager : MonoBehaviour
 {
     [SerializeField] UIManager uiManager;
-    [SerializeField] bool TestFlag = false;
+    [SerializeField] GameManager game;
     private int _token = 0;
     private string _MatchID = "0";
     private bool _queueflag = true;
     private bool TicketValid = true;
+    
 
     const string API_URL = "https://localhost:7166/api/";
 
@@ -55,40 +57,26 @@ public class APIManager : MonoBehaviour
         }
     }
 
-    public IEnumerator IsTicketValid()
+    public IEnumerator IsTicketValid(System.Action<bool> callback)
     {
-        while (_queueflag)
+        using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
         {
-            using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
+            yield return request.SendWebRequest();
+            Debug.Log(request.result);
+            switch (request.result)
             {
-                yield return request.SendWebRequest();
-                Debug.Log(request.result);
-                switch (request.result)
-                {
-                    case UnityWebRequest.Result.Success:
-                        if (request.downloadHandler.text == "true") TicketValid = true;
-                        else TicketValid = false;
-                        break;
-                    default: TicketValid = false; break;
+                case UnityWebRequest.Result.Success:
+                    if (request.downloadHandler.text == "true") callback(true);
+                    else callback(false);
+                    break;
+                default: callback(false); break;
                         
 
 
-                }
-                yield return new WaitForSecondsRealtime(1);
             }
+            yield return new WaitForSecondsRealtime(1);
         }
-               
     }
-
-    /*public bool IsTicketValidOutput()
-    {
-        
-        float i = 0;
-        bool output = false;
-        StartCoroutine(IsTicketValid((_isTicketValid) => {output = _isTicketValid;}));
-        
-        return output;
-    }*/
 
     public IEnumerator LeaveGame()
     {
@@ -112,6 +100,7 @@ public class APIManager : MonoBehaviour
 
     public IEnumerator LeaveQueue()
     {
+        yield return StartCoroutine(IsTicketValid((callback) => { TicketValid = callback; }));
         if (TicketValid && _queueflag)
         {
             List<IMultipartFormSection> formData = new()
@@ -139,7 +128,7 @@ public class APIManager : MonoBehaviour
     {
         _queueflag = true;
         TicketValid = true;
-        StartCoroutine(IsTicketValid());
+        yield return StartCoroutine(IsTicketValid((callback) => { TicketValid = callback; }));
         while (TicketValid && _queueflag)
         {
             using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"+_token))
@@ -152,7 +141,6 @@ public class APIManager : MonoBehaviour
                         if (request.downloadHandler.text == "0") 
                         {
                             uiManager.TriggerWaitingText();
-                            new WaitForSecondsRealtime(1);
                             Debug.Log("Match Not Found");
                             break;
                         }
@@ -165,12 +153,8 @@ public class APIManager : MonoBehaviour
 
                 }
             }
-        }
-
-        if (!TicketValid)
-        {
-            uiManager.LeftQueue();
-            StartCoroutine(LeaveGame());
+            yield return StartCoroutine(IsTicketValid((callback) => { TicketValid = callback; }));
+            yield return new WaitForSeconds(1);
         }
     }
 
@@ -186,8 +170,9 @@ public class APIManager : MonoBehaviour
             switch (request.result)
             {
                 case UnityWebRequest.Result.Success:
-                    Debug.Log("Disconnect Attempt Post Successful");
+                    Debug.Log("Match Join Post Successful");
                     _queueflag = false;
+                    yield return GetMatchStatus((newDict) => { game.RunGame(newDict); }) ;
                     uiManager.StartGame();
                     break;
             }
@@ -210,6 +195,7 @@ public class APIManager : MonoBehaviour
                     break;
             }
         }
+        SceneManager.LoadScene(0);
     }
 
     public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> StatusCallback)
