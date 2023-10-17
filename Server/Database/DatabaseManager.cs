@@ -198,7 +198,10 @@ namespace Server.Database
 		/// <returns>Whether this player is inside a match</returns>
 		public bool GetMatchActive(int playerToken)
 		{
-			throw new NotImplementedException();
+			int matchID = GetMatchFound(playerToken);
+			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
+			bool gameActive = int.Parse(ExecuteQuery(getGameActiveStatus)["IsGameActive"].ToString()) != (int)MatchStatus.Inactive;
+			return gameActive;
 		}
 
 		/// <summary>
@@ -677,6 +680,15 @@ namespace Server.Database
 		}
 		#endregion
 		#endregion
+		#endregion
+
+		#region
+		enum MatchStatus
+		{
+			Inactive = 0,
+			ActiveBothPlayers = 1,
+			ActiveOnePlayer = 2
+		}
 		#endregion
 	}
 }
