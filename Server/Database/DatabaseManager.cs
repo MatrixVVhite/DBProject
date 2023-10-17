@@ -649,7 +649,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="matchID">Unique ID of the match to start</param>
 		/// <returns>Success/Failure</returns>
-		private bool StartMatch(int matchID)
+		private bool StartMatch(int matchID) // TODO Remove accepting players from the waiting queue
 		{
 			//Get both players in the lobby. If both players signal 1 on queue - AcceptMatch, update both players' status to 2, and go through with the match
 			//If 1 player leaves or doesn't handshake in time, use EndMatch(matchID) and use SubmitPlayerTicket(int playerToken) on the active player
