@@ -177,7 +177,7 @@ public class APIManager : MonoBehaviour
                     {
                         yield return IsMatchActive((callback) => { joinBool = callback; });
                     }
-                    yield return GetMatchStatus((newDict) => { game.RunGame(newDict); }) ;
+                    yield return GetMatchStatus((newDict) => { StartCoroutine(game.RunGame(newDict)); }) ;
                     uiManager.StartGame();
                     break;
             }

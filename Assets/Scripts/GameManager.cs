@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
     private int questionsLeft = 0;
     private Dictionary<string, string> MatchStats;
 
-    public void RunGame(Dictionary<string, string> newMatchStats)
+    public IEnumerator RunGame(Dictionary<string, string> newMatchStats)
     {
         MatchStats = newMatchStats;
         GameRunning = true;
@@ -28,8 +28,8 @@ public class GameManager : MonoBehaviour
             {
                 uiManager.UpdateScores(MatchStats[player + "Score"], MatchStats[otherplayer + "Score"], MatchStats[player + "QuestionsLeft"], MatchStats[otherplayer + "QuestionsLeft"]);
                 questionsLeft = int.Parse(MatchStats[player + "QuestionsLeft"]);
-                RefreshStats();
-                StartCoroutine(Cooldown(1));
+                yield return StartCoroutine(apiManager.GetMatchStatus((Status) => { MatchStats = Status; }));
+                yield return StartCoroutine(Cooldown(1));
                 if (questionsLeft <= 0) GameRunning = false;
             }
         }
@@ -42,8 +42,8 @@ public class GameManager : MonoBehaviour
             {
                 uiManager.UpdateScores(MatchStats[player + "Score"], MatchStats[otherplayer + "Score"], MatchStats[player + "QuestionsLeft"], MatchStats[otherplayer + "QuestionsLeft"]);
                 questionsLeft = int.Parse(MatchStats[otherplayer + "QuestionsLeft"]);
-                RefreshStats();
-                StartCoroutine(Cooldown(1));
+                yield return StartCoroutine(apiManager.GetMatchStatus((Status) => { MatchStats = Status; }));
+                yield return StartCoroutine(Cooldown(1));
                 if (questionsLeft <= 0) waitingForEnd = false;
             }
         }
