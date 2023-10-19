@@ -11,8 +11,7 @@ namespace Server.Controllers
 		public int Post([FromForm] string playerName)
 		{
 			int playerToken = GetUniquePlayerToken();
-			DatabaseManager.Instance.AddNewPlayer(playerToken, playerName);
-			return playerToken;
+			return DatabaseManager.Instance.AddNewPlayer(playerToken, playerName) ? playerToken : 0;
 		}
 
 		private int GetUniquePlayerToken()
