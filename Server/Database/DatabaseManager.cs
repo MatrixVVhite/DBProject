@@ -190,13 +190,8 @@ namespace Server.Database
 		#region QUERIES
 		public JsonDict GetQuestion(int questionID)
 		{
-			if (questionID > 10)
-				return new JsonDict(); // TODO Test if this is even needed
-			else
-			{
-				string query = $"SELECT * FROM questions WHERE QuestionID = {questionID};";
-				return ExecuteQuery(query);
-			}
+			string query = $"SELECT * FROM questions WHERE QuestionID = {questionID};";
+			return ExecuteQuery(query);
 		}
 
 		/// <summary>
@@ -267,24 +262,25 @@ namespace Server.Database
 		/// <returns>A dictionary with all the relevant info</returns>
 		public JsonDict GetMatchStatus(int matchID, int playerToken)
 		{
-			// TODO Check if match even exists
-			int callerID = GetPlayerID(playerToken);
-			int player1ID = GetPlayer1IDFromLobby(matchID);
-			int player2ID = GetPlayer2IDFromLobby(matchID);
-			int callerIs = callerID == player1ID ? 1 : 2;
-			int player1Score = GetPlayerScore(player1ID);
-			int player2Score = GetPlayerScore(player2ID);
-			string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
-			int currentP1QuestionID = ExecuteQueryInt(getP1CurrentQuestion);
-			string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player2ID};";
-			int currentP2QuestionID = ExecuteQueryInt(getP2CurrentQuestion);
-			int p1QuestionsAnswered = currentP1QuestionID - 1;
-			int p2QuestionsAnswered = currentP2QuestionID - 1;
-			int p1QuestionsLeft = 10 - p1QuestionsAnswered;
-			int p2QuestionsLeft = 10 - p2QuestionsAnswered;
-			string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
-			int gameActiveStatus = ExecuteQueryInt(getGameActiveStatus);
-			var dataToSend = new JsonDict()
+			if (ExecuteQueryExists($"SELECT LobbyID FROM lobbies WHERE LobbyID = {matchID};"))
+			{
+				int callerID = GetPlayerID(playerToken);
+				int player1ID = GetPlayer1IDFromLobby(matchID);
+				int player2ID = GetPlayer2IDFromLobby(matchID);
+				int callerIs = callerID == player1ID ? 1 : 2;
+				int player1Score = GetPlayerScore(player1ID);
+				int player2Score = GetPlayerScore(player2ID);
+				string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
+				int currentP1QuestionID = ExecuteQueryInt(getP1CurrentQuestion);
+				string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player2ID};";
+				int currentP2QuestionID = ExecuteQueryInt(getP2CurrentQuestion);
+				int p1QuestionsAnswered = currentP1QuestionID - 1;
+				int p2QuestionsAnswered = currentP2QuestionID - 1;
+				int p1QuestionsLeft = 10 - p1QuestionsAnswered;
+				int p2QuestionsLeft = 10 - p2QuestionsAnswered;
+				string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
+				int gameActiveStatus = ExecuteQueryInt(getGameActiveStatus);
+				var dataToSend = new JsonDict()
 			{
 				{ "YouAre", callerIs },
 				{ "P1Score", player1Score },
@@ -295,7 +291,12 @@ namespace Server.Database
 				{ "P2QuestionsLeft", p2QuestionsLeft},
 				{ "GameActiveStatus", gameActiveStatus }
 			};
-			return dataToSend;
+				return dataToSend;
+			}
+			else
+			{
+				return new JsonDict();
+			}
 		}
 
 		/// <summary>
@@ -384,13 +385,13 @@ namespace Server.Database
 
 		private bool AcceptMatchTo0(int playerID)
 		{
-            string acceptMatchTo0Statement = $"UPDATE queue SET AcceptMatch = 0 WHERE (PlayerID = {playerID});";
+            string acceptMatchTo0Statement = $"UPDATE queue SET AcceptMatch = 0 WHERE (PlayerID = {playerID}) LIMIT 1;";
             return ExecuteCommand(acceptMatchTo0Statement) > 0;
         }
 
 		private bool ChangeGameActiveStatus(int lobbyID, MatchStatus newStatus) //0 for inactive, 1 for both players active, 2 for waiting for last player
 		{
-			string statement = $"UPDATE lobbies SET IsGameActive = {(int)newStatus} WHERE (LobbyID = {lobbyID});";
+			string statement = $"UPDATE lobbies SET IsGameActive = {(int)newStatus} WHERE (LobbyID = {lobbyID}) LIMIT 1;";
 			return ExecuteCommand(statement) > 0;
         }
 
@@ -399,35 +400,35 @@ namespace Server.Database
 			int p1ID = GetPlayer1IDFromLobby(lobbyID);
 			if (p1ID == playerID)
 			{
-                string statement = $"UPDATE lobbies SET Player1ID = 0 WHERE (LobbyID = {lobbyID});";
+                string statement = $"UPDATE lobbies SET Player1ID = 0 WHERE (LobbyID = {lobbyID}) LIMIT 1;";
                 return ExecuteCommand(statement) > 0;
             }
 			else
 			{
-                string statement = $"UPDATE lobbies SET Player2ID = 0 WHERE (LobbyID = {lobbyID});";
+                string statement = $"UPDATE lobbies SET Player2ID = 0 WHERE (LobbyID = {lobbyID}) LIMIT 1;";
                 return ExecuteCommand(statement) > 0;
             }
         }
 
 		private bool RemovePlayerLobbyNumber(int playerID)
 		{
-			string statement = $"UPDATE players SET LobbyNumber = 0 WHERE (PlayerID = {playerID});";
+			string statement = $"UPDATE players SET LobbyNumber = 0 WHERE (PlayerID = {playerID}) LIMIT 1;";
 			return ExecuteCommand(statement) > 0;
 		}
 
 		private bool RemoveLobby(int lobbyID)
 		{
-			string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {lobbyID});";
+			string deleteLobby = $"DELETE FROM lobbies WHERE (LobbyID = {lobbyID}) LIMIT 1;";
 			return ExecuteCommand(deleteLobby) > 0;
 		}
 
 		private bool Add1ToCurrentQuestion(int playerID)
 		{
-			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID};";
+			string getCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {playerID} LIMIT 1;";
 			int currentQuestionNum = ExecuteQueryInt(getCurrentQuestion);
 			if (currentQuestionNum <= 10)
 			{
-                string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID});";
+                string add1ToCurrentQuestionStatement = $"UPDATE `session stats` SET CurrentQuestion = {currentQuestionNum + 1} WHERE (PlayerID = {playerID}) LIMIT 1;";
                 return ExecuteCommand(add1ToCurrentQuestionStatement) > 0;
             }
 			else return true;
@@ -435,9 +436,9 @@ namespace Server.Database
 
         private bool AddScore(int playerID)
         {
-			string getCurrentScore = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID};";
+			string getCurrentScore = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID} LIMIT 1;";
 			int currentScore = ExecuteQueryInt(getCurrentScore);
-			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore + 10} WHERE (PlayerID = {playerID});";
+			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore + 10} WHERE (PlayerID = {playerID}) LIMIT 1;";
 			return ExecuteCommand(addToCurrentScore) > 0;
         }
 
@@ -456,7 +457,7 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		public bool AddNewPlayer(int playerToken, string playerName)
 		{
-			string statement = $"INSERT INTO players (PlayerName, PlayerToken) VALUES ('{playerName}', {playerToken});";
+			string statement = $"INSERT INTO players (PlayerName, PlayerToken) VALUES ('{playerName}', {playerToken}) LIMIT 1;";
 			return ExecuteCommand(statement) > 0;
 		}
 
@@ -493,9 +494,9 @@ namespace Server.Database
 				}
 				RemoveLobby(playerLobby);
 			}
-			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
+			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID}) LIMIT 1;";
 			bool deleteFromQueue = ExecuteCommand(deleteFromQueueQuery) > 0;
-			string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken});";
+			string deleteFromDBStatement = $"DELETE FROM players WHERE(PlayerToken = {playerToken}) LIMIT 1;";
 			bool deleteFromDB = ExecuteCommand(deleteFromDBStatement) > 0;
 			return deleteFromQueue & deleteFromDB;
 		}
@@ -562,7 +563,7 @@ namespace Server.Database
                 }
 				RemoveLobby(playerLobby);
 			}
-			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
+			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID}) LIMIT 1;";
 			bool deleteFromQueue = ExecuteCommand(deleteFromQueueQuery) > 0;
 			bool updateStatus = UpdatePlayerStatus (playerID, 0);
 			return deleteFromQueue & updateStatus;
@@ -570,7 +571,7 @@ namespace Server.Database
 
 		public bool RemovePlayerTicketByID(int playerID)
 		{
-			string deleteFromQueue = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
+			string deleteFromQueue = $"DELETE FROM queue WHERE(PlayerID = {playerID}) LIMIT 1;";
 			bool test1 = ExecuteCommand(deleteFromQueue) > 0;
 			bool test2 = UpdatePlayerStatus(playerID, 0);
 			return test1 & test2;
@@ -669,11 +670,11 @@ namespace Server.Database
 		/// <returns>Success/Failure</returns>
 		private bool CreateMatch(params int[] playerIDs)
 		{
-			string statement1 = $"INSERT INTO lobbies (Player1ID, Player2ID) VALUES ({playerIDs[0]}, {playerIDs[1]});";
+			string statement1 = $"INSERT INTO lobbies (Player1ID, Player2ID) VALUES ({playerIDs[0]}, {playerIDs[1]}) LIMIT 1;";
 			bool insertIntoLobby = ExecuteCommand(statement1) > 0;
 			int lobbyNumber = GetPlayerLobby(playerIDs[0]); //Creates and returns the lobby number
-			string updateP1LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]});";
-			string updateP2LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]});";
+			string updateP1LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[0]}) LIMIT 1;";
+			string updateP2LobbyNum = $"UPDATE players SET PlayerStatus = {(int)PlayerStatus.Lobby}, LobbyNumber = {lobbyNumber} WHERE (PlayerID = {playerIDs[1]}) LIMIT 1;";
 			return insertIntoLobby & TestTwoStatements(updateP1LobbyNum, updateP2LobbyNum);
 		}
 
