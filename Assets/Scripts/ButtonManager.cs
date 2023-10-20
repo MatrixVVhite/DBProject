@@ -1,38 +1,42 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
 
 public class ButtonManager : MonoBehaviour
 {
-    [SerializeField] TMP_Text answer;
-    [SerializeField] UIManager manager;
-    [SerializeField] Image buttonVisual;
-    [SerializeField] Button button;
-    [SerializeField] Color defaultColor;
+	[SerializeField] private UIManager _uiManager;
+	[SerializeField] private Button _button;
+	[SerializeField] private Image _buttonVisual;
+	[SerializeField] private TMP_Text _answerText;
+    [SerializeField] private Color _defaultColor;
     private string AnswerID;
-    
 
-    public void updateAnswer(string answerID, string Text)
+#if UNITY_EDITOR
+	private void OnValidate()
+	{
+		_button = GetComponent<Button>();
+		_buttonVisual = GetComponent<Image>();
+		_answerText = GetComponentInChildren<TMP_Text>();
+	}
+#endif
+
+	public void UpdateAnswer(string answerID, string Text)
     {
-        buttonVisual.color = defaultColor;
+        _buttonVisual.color = _defaultColor;
         AnswerID = answerID;
-        answer.text = Text;
-        button.interactable = true;
+        _answerText.text = Text;
+        _button.interactable = true;
     }
-
 
     public void SubmitAnswer()
     {
-        StartCoroutine(manager.SubmitAnswer(AnswerID, this));
-        button.interactable = false;
+        StartCoroutine(_uiManager.SubmitAnswer(AnswerID, this));
+        _button.interactable = false;
     }
 
     public void ColorResponse(bool flag)
     {
-        defaultColor = buttonVisual.color;
-        if (flag) buttonVisual.color = Color.green;
-        else buttonVisual.color = Color.red;
-    }
+        _defaultColor = _buttonVisual.color;
+		_buttonVisual.color = flag ? Color.green : Color.red;
+	}
 }

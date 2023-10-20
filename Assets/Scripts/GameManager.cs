@@ -4,92 +4,88 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] UIManager uiManager;
-    [SerializeField] APIManager apiManager;
-    private string player;
-    private string otherplayer;
-    private bool disabled = false;
-    private bool GameRunning = false;
-    private bool waitingForEnd = false;
-    private int questionsLeft = 0;
-    private Dictionary<string, string> MatchStats;
+	[SerializeField] private UIManager _UIManager;
+	[SerializeField] private APIManager _APIManager;
+	private string _player;
+	private string _otherPlayer;
+	private bool _disabled = false;
+	private bool _gameRunning = false;
+	private bool _waitingForEnd = false;
+	private int _questionsLeft = 0;
+	private Dictionary<string, string> _matchStats;
 
-    public IEnumerator RunGame(Dictionary<string, string> newMatchStats)
-    {
-        MatchStats = newMatchStats;
-        GameRunning = true;
-        player = "P" + MatchStats["YouAre"];
-        otherplayer = "P" + (1 + (int.Parse(MatchStats["YouAre"])%2));
-        questionsLeft = int.Parse(MatchStats[player + "QuestionsLeft"]);
-        LoadQuestion();
-        while (GameRunning)
-        {
-            if (!disabled)
-            {
-                uiManager.UpdateScores(MatchStats[player + "Score"], MatchStats[otherplayer + "Score"], MatchStats[player + "QuestionsLeft"], MatchStats[otherplayer + "QuestionsLeft"]);
-                questionsLeft = int.Parse(MatchStats[player + "QuestionsLeft"]);
-                yield return StartCoroutine(apiManager.GetMatchStatus((Status) => { MatchStats = Status; }));
-                yield return StartCoroutine(Cooldown(1));
-                if (questionsLeft <= 0) GameRunning = false;
-            }
-        }
+	public IEnumerator RunGame(Dictionary<string, string> newMatchStats)
+	{
+		_matchStats = newMatchStats;
+		_gameRunning = true;
+		_player = "P" + _matchStats["YouAre"];
+		_otherPlayer = "P" + (1 + (int.Parse(_matchStats["YouAre"])%2));
+		_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
+		LoadQuestion(); // TODO Figure out whether this should be here or inside the "while (_gameRunning)" loop
+		while (_gameRunning)
+		{
+			if (!_disabled)
+			{
+				_UIManager.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
+				_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
+				yield return StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
+				yield return StartCoroutine(Cooldown(1));
+				if (_questionsLeft <= 0)
+					_gameRunning = false;
+			}
+		}
 
-        waitingForEnd = true;
-        uiManager.LoadEndScreen();
-        while (waitingForEnd)
-        {
-            if (!disabled)
-            {
-                uiManager.UpdateScores(MatchStats[player + "Score"], MatchStats[otherplayer + "Score"], MatchStats[player + "QuestionsLeft"], MatchStats[otherplayer + "QuestionsLeft"]);
-                questionsLeft = int.Parse(MatchStats[otherplayer + "QuestionsLeft"]);
-                yield return StartCoroutine(apiManager.GetMatchStatus((Status) => { MatchStats = Status; }));
-                yield return StartCoroutine(Cooldown(1));
-                if (questionsLeft <= 0) waitingForEnd = false;
-            }
-        }
+		_waitingForEnd = true;
+		_UIManager.LoadEndScreen();
+		while (_waitingForEnd)
+		{
+			if (!_disabled)
+			{
+				_UIManager.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
+				_questionsLeft = int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]);
+				yield return StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
+				yield return StartCoroutine(Cooldown(1));
+				if (_questionsLeft <= 0) _waitingForEnd = false;
+			}
+		}
 
-        string message = "";
+		string message = "";
 
-        if (int.Parse(MatchStats[player+"Score"])> int.Parse(MatchStats[otherplayer + "Score"]))
-        {
-            message = "Congragulations!\n" + "you have won the match";   
-        }
-        else if (int.Parse(MatchStats[player + "Score"]) < int.Parse(MatchStats[otherplayer + "Score"]))
-        {
-            message = "Womp Womp...\n" + "it seems that your opponent has defeated you";
-        }
-        else
-        {
-            message = "WOAH!\n" + "it seems that this match was a tie!";
-        }
-        uiManager.updateEndMessage(message);
+		if (int.Parse(_matchStats[_player+"Score"])> int.Parse(_matchStats[_otherPlayer + "Score"]))
+		{
+			message = "Congratulations!\n" + "you have won the match";   
+		}
+		else if (int.Parse(_matchStats[_player + "Score"]) < int.Parse(_matchStats[_otherPlayer + "Score"]))
+		{
+			message = "Womp Womp...\n" + "it seems that your opponent has defeated you";
+		}
+		else
+		{
+			message = "WOAH!\n" + "it seems that this match was a tie!";
+		}
+		_UIManager.UpdateEndMessage(message);
+	}
 
+	public bool isGameRunning(string player)
+	{
+		return _gameRunning;
+	}
 
-    }
+	public void LoadQuestion()
+	{
+		if (_gameRunning)
+			StartCoroutine(_APIManager.GetNextQuestion());
+	}
 
+	private void RefreshStats()
+	{
+		StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
+	}
 
-    public bool isGameRunning(string player)
-    {
-        return GameRunning;
-    }
-
-    public void LoadQuestion()
-    {
-        if (GameRunning)
-        {
-            StartCoroutine(apiManager.GetNextQuestion());
-        }
-    }
-
-    private void RefreshStats()
-    {
-        StartCoroutine(apiManager.GetMatchStatus((Status) => { MatchStats = Status; }));
-    }
-
-    private IEnumerator Cooldown(int cooldown)
-    {
-        disabled = true;
-        yield return new WaitForSeconds(cooldown);
-        disabled = false;
-    }
+	private IEnumerator Cooldown(int cooldown)
+	{
+		_disabled = true;
+		yield return new WaitForSeconds(cooldown);
+		_disabled = false;
+	}
 }
