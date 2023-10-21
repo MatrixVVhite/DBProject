@@ -129,6 +129,7 @@ public class UIManager : MonoBehaviour
 	{
 		_mainMenuUI.SetActive(false);
 		_gameUI.SetActive(true);
+		ResetGameUI();
 	}
 	#endregion
 
@@ -151,6 +152,14 @@ public class UIManager : MonoBehaviour
 	#endregion
 
 	#region FUNCTIONS
+	public void ResetGameUI()
+	{
+		_question.text = string.Empty;
+		_endGameScreen.SetActive(false);
+		_finalMessage.text = string.Empty;
+		_currentQuestion = new Dictionary<string, string>();
+	}
+
 	public void UpdateQuestion(Dictionary<string, string> newQuestion)
 	{
 		_currentQuestion = newQuestion;
