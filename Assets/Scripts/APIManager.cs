@@ -189,10 +189,10 @@ public class APIManager : MonoBehaviour
 			{
 				case UnityWebRequest.Result.Success:
 					Debug.Log("Disconnect Attempt Post Successful");
+					_UIManager.OnExitMatchSuccessful();
 					break;
 			}
 		}
-		SceneManager.LoadScene(0);
 	}
 
 	public IEnumerator IsMatchActive(System.Action<string> StatusCallback)

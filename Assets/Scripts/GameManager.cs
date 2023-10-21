@@ -66,11 +66,6 @@ public class GameManager : MonoBehaviour
 		_UIManager.UpdateEndMessage(message);
 	}
 
-	public bool isGameRunning(string player)
-	{
-		return _gameRunning;
-	}
-
 	public void LoadQuestion()
 	{
 		if (_gameRunning)

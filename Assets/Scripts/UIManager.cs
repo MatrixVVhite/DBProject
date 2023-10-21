@@ -116,6 +116,7 @@ public class UIManager : MonoBehaviour
 		_leaveQueueButton.gameObject.SetActive(false);
 		_disconnectButton.gameObject.SetActive(true);
 		_connectButton.gameObject.SetActive(false);
+		_startMatchButton.gameObject.SetActive(false);
 	}
 
 	public void OnMatchFound()
@@ -193,6 +194,13 @@ public class UIManager : MonoBehaviour
 	public void OnExitMatchButtonClicked()
 	{
 		StartCoroutine(_APIManager.LeaveMatch());
+	}
+
+	public void OnExitMatchSuccessful()
+	{
+		_mainMenuUI.SetActive(true);
+		_gameUI.SetActive(false);
+		OnLeftQueueSuccess();
 	}
 	#endregion
 	#endregion
