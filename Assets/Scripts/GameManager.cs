@@ -6,7 +6,6 @@ using UI;
 public class GameManager : MonoBehaviour
 {
 	[SerializeField] private InGameMenu _inGameMenu;
-	[SerializeField] private APIManager _APIManager;
 	private string _player;
 	private string _otherPlayer;
 	private bool _disabled = false;
@@ -14,6 +13,17 @@ public class GameManager : MonoBehaviour
 	private bool _waitingForEnd = false;
 	private int _questionsLeft = 0;
 	private Dictionary<string, string> _matchStats;
+
+	public static GameManager Instance { get; private set; }
+
+	private void Awake()
+	{
+		if (Instance == null)
+		{
+			Instance = this;
+			DontDestroyOnLoad(this);
+		}
+	}
 
 	public IEnumerator RunGame(Dictionary<string, string> newMatchStats)
 	{
@@ -29,7 +39,7 @@ public class GameManager : MonoBehaviour
 			{
 				_inGameMenu.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
 				_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
-				yield return StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
+				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
 				if (_questionsLeft <= 0)
 					_gameRunning = false;
@@ -44,7 +54,7 @@ public class GameManager : MonoBehaviour
 			{
 				_inGameMenu.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
 				_questionsLeft = int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]);
-				yield return StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
+				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
 				if (_questionsLeft <= 0) _waitingForEnd = false;
 			}
@@ -70,12 +80,12 @@ public class GameManager : MonoBehaviour
 	public void LoadQuestion()
 	{
 		if (_gameRunning)
-			StartCoroutine(_APIManager.GetNextQuestion());
+			StartCoroutine(APIManager.Instance.GetNextQuestion());
 	}
 
 	private void RefreshStats()
 	{
-		StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
+		StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 	}
 
 	private IEnumerator Cooldown(int cooldown)

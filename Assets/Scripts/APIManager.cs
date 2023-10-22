@@ -9,13 +9,23 @@ public class APIManager : MonoBehaviour
 {
 	const string API_URL = "https://localhost:7166/api/";
 
-	[SerializeField] private GameManager _gameManager;
 	[SerializeField] private MainMenu _mainMenu;
 	[SerializeField] private InGameMenu _inGameMenu;
 	private int _token = 0;
 	private string _MatchID = "0";
 	private bool _queueFlag = true;
 	private bool _ticketValid = true;
+
+	public static APIManager Instance { get; private set; }
+
+	private void Awake()
+	{
+		if (Instance == null)
+		{
+			Instance = this;
+			DontDestroyOnLoad(this);
+		}
+	}
 
 	public IEnumerator ConnectToServer(string PlayerName)
 	{
@@ -170,7 +180,7 @@ public class APIManager : MonoBehaviour
 					{
 						yield return IsMatchActive((callback) => { joinBool = callback; });
 					}
-					yield return GetMatchStatus((newDict) => { StartCoroutine(_gameManager.RunGame(newDict)); }) ;
+					yield return GetMatchStatus((newDict) => { StartCoroutine(GameManager.Instance.RunGame(newDict)); }) ;
 					_mainMenu.OnStartGame();
 					break;
 			}

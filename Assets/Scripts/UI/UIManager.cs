@@ -7,6 +7,17 @@ namespace UI
 		[SerializeField] private MainMenu _mainMenu;
 		[SerializeField] private InGameMenu _inGameMenu;
 
+		public static UIManager Instance { get; private set; }
+
+		private void Awake()
+		{
+			if (Instance == null)
+			{
+				Instance = this;
+				DontDestroyOnLoad(this);
+			}
+		}
+
 		public void ShowMainMenu()
 		{
 			_mainMenu.gameObject.SetActive(true);

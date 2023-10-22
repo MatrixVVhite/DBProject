@@ -6,18 +6,6 @@ namespace UI
 {
 	public class MainMenu : MonoBehaviour
 	{
-		#region CORE_OBJECTS
-		[SerializeField] private APIManager _APIManager;
-		[SerializeField] private UIManager _UIManager;
-		#endregion
-
-#if UNITY_EDITOR
-		private void OnValidate()
-		{
-			_playerNameInputField = _registration.GetComponentInChildren<TMP_InputField>();
-		}
-#endif
-
 		#region ELEMENTS
 		[SerializeField] private GameObject _registration;
 		[SerializeField] private TMP_InputField _playerNameInputField;
@@ -34,17 +22,17 @@ namespace UI
 		#region BUTTONS
 		public void OnConnectButtonClicked()
 		{
-			StartCoroutine(_APIManager.ConnectToServer(_playerNameInputField.text));
+			StartCoroutine(APIManager.Instance.ConnectToServer(_playerNameInputField.text));
 		}
 
 		public void OnJoinQueueButtonClicked()
 		{
-			StartCoroutine(_APIManager.SubmitTicket());
+			StartCoroutine(APIManager.Instance.SubmitTicket());
 		}
 
 		public void OnStartMatchButtonClicked()
 		{
-			StartCoroutine(_APIManager.JoinMatch());
+			StartCoroutine(APIManager.Instance.JoinMatch());
 		}
 
 		public void OnExitGameButtonClicked()
@@ -54,12 +42,12 @@ namespace UI
 
 		public void OnDisconnectButtonClicked()
 		{
-			StartCoroutine(_APIManager.DisconnectFromServer());
+			StartCoroutine(APIManager.Instance.DisconnectFromServer());
 		}
 
 		public void OnLeaveQueueButtonClicked()
 		{
-			StartCoroutine(_APIManager.RevokeTicket());
+			StartCoroutine(APIManager.Instance.RevokeTicket());
 		}
 		#endregion
 
@@ -108,7 +96,7 @@ namespace UI
 
 		public void OnStartGame()
 		{
-			_UIManager.ShowInGameMenu();
+			UIManager.Instance.ShowInGameMenu();
 		}
 		#endregion
 

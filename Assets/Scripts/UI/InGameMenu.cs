@@ -8,19 +8,13 @@ namespace UI
 {
 	public class InGameMenu : MonoBehaviour
 	{
-		#region CORE_OBJECTS
-		[SerializeField] private GameManager _gameManager;
-		[SerializeField] private APIManager _APIManager;
-		[SerializeField] private UIManager _UIManager;
-		#endregion
-
 		#region FIELDS
-		[SerializeField] TextMeshProUGUI _question;
-		[SerializeField] AnswerButton[] _answers;
-		[SerializeField] TextMeshProUGUI[] _playerStats;
-		[SerializeField] GameObject _endGameScreen;
-		[SerializeField] TextMeshProUGUI _finalMessage;
-		[SerializeField] Button _exitMatchEnd;
+		[SerializeField] private TextMeshProUGUI _question;
+		[SerializeField] private AnswerButton[] _answers;
+		[SerializeField] private TextMeshProUGUI[] _playerStats;
+		[SerializeField] private GameObject _endGameScreen;
+		[SerializeField] private TextMeshProUGUI _finalMessage;
+		[SerializeField] private Button _exitMatchEnd;
 		private Dictionary<string, string> _currentQuestion;
 		#endregion
 
@@ -54,11 +48,11 @@ namespace UI
 
 		public IEnumerator SubmitAnswer(string AnswerID, AnswerButton button)
 		{
-			yield return StartCoroutine(_APIManager.AnswerQuestion(AnswerID, (isCorrect) => {
+			yield return StartCoroutine(APIManager.Instance.AnswerQuestion(AnswerID, (isCorrect) => {
 				button.ColorResponse(isCorrect);
 			}));
 			yield return new WaitForSeconds(2);
-			_gameManager.LoadQuestion();
+			GameManager.Instance.LoadQuestion();
 		}
 
 		public void UpdateScores(string yourScore, string otherScore, string yourQuestionsLeft, string otherQuestionsLeft)
@@ -82,12 +76,12 @@ namespace UI
 
 		public void OnExitMatchButtonClicked()
 		{
-			StartCoroutine(_APIManager.LeaveMatch());
+			StartCoroutine(APIManager.Instance.LeaveMatch());
 		}
 
 		public void OnExitMatchSuccessful()
 		{
-			_UIManager.ExitMatch();
+			UIManager.Instance.ExitMatch();
 		}
 		#endregion
 	}
