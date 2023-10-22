@@ -13,6 +13,7 @@ namespace UI
 		[SerializeField] private AnswerButton[] _answers;
 		[SerializeField] private PlayerStatusSidebar _playerStats;
 		[SerializeField] private PlayerStatusSidebar _otherStats;
+		[SerializeField] private Bar _timerBar; // TODO Animate this
 		[SerializeField] private GameObject _endGameScreen;
 		[SerializeField] private TextMeshProUGUI _finalMessage;
 		[SerializeField] private Button _exitMatchButton;
@@ -39,7 +40,7 @@ namespace UI
 			{
 				_question.text = _currentQuestion["QuestionText"];
 				for (int i = 0; i < 4; i++)
-					_answers[i].UpdateAnswer((i + 1).ToString(), _currentQuestion["Answer" + (i + 1)]);
+					_answers[i].UpdateAnswer(i + 1, _currentQuestion["Answer" + (i + 1)]);
 			}
 			catch (KeyNotFoundException)
 			{
@@ -47,18 +48,26 @@ namespace UI
 			}
 		}
 
-		public IEnumerator SubmitAnswer(string AnswerID, AnswerButton button)
+		public IEnumerator SubmitAnswer(int AnswerID, float answerTime, AnswerButton button)
 		{
-			yield return StartCoroutine(APIManager.Instance.AnswerQuestion(AnswerID, (isCorrect) => {
-				button.ColorResponse(isCorrect);
-			}));
+			yield return StartCoroutine(APIManager.Instance.AnswerQuestion(
+				AnswerID,
+				answerTime,
+				(isCorrect) => { button.ColorResponse(isCorrect); },
+				(updatedScore) => { UpdatePlayerScore(updatedScore); }
+			));
 			yield return new WaitForSeconds(2);
 			GameManager.Instance.LoadQuestion();
 		}
 
-		public void UpdateScores(int yourScore, int otherScore, int yourQuestionsLeft, int otherQuestionsLeft)
+		public void UpdatePlayerScore(int yourScore)
 		{
 			_playerStats.UpdateScore(yourScore);
+		}
+
+		public void UpdatePlayerStats(int yourScore, int otherScore, int yourQuestionsLeft, int otherQuestionsLeft)
+		{
+			UpdatePlayerScore(yourScore);
 			_playerStats.UpdateQuestions(yourQuestionsLeft);
 			_otherStats.UpdateScore(otherScore);
 			_otherStats.UpdateQuestions(otherQuestionsLeft);

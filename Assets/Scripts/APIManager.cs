@@ -12,7 +12,7 @@ public class APIManager : MonoBehaviour
 	[SerializeField] private MainMenu _mainMenu;
 	[SerializeField] private InGameMenu _inGameMenu;
 	private int _token = 0;
-	private string _MatchID = "0";
+	private int _matchID = 0;
 	private bool _queueFlag = true;
 	private bool _ticketValid = true;
 
@@ -27,11 +27,11 @@ public class APIManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator ConnectToServer(string PlayerName)
+	public IEnumerator ConnectToServer(string playerName)
 	{
 		List<IMultipartFormSection> formData = new()
 		{
-			new MultipartFormDataSection("playerName", PlayerName)
+			new MultipartFormDataSection("playerName", playerName)
 		};
 		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", formData))
 		{
@@ -150,7 +150,7 @@ public class APIManager : MonoBehaviour
 							Debug.Log("Match Not Found");
 							break;
 						}
-						_MatchID = request.downloadHandler.text;
+						_matchID = int.Parse(request.downloadHandler.text);
 						_mainMenu.OnMatchFound();
 						Debug.Log("result success");
 						break;
@@ -221,16 +221,16 @@ public class APIManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> StatusCallback)
+	public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> statusCallback)
 	{
-		using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _MatchID + "&playerToken=" + _token))
+		using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _matchID + "&playerToken=" + _token))
 		{
 			yield return request.SendWebRequest();
 			Debug.Log(request.result);
 			switch (request.result)
 			{
 				case UnityWebRequest.Result.Success:
-					StatusCallback(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
+					statusCallback(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
 					break;
 			}
 		}
@@ -245,6 +245,7 @@ public class APIManager : MonoBehaviour
 			switch (request.result)
 			{
 				case UnityWebRequest.Result.Success:
+					GameManager.Instance.StartTimer();
 					_inGameMenu.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
 					_inGameMenu.UpdateQuestionUI();
 					break;
@@ -252,12 +253,13 @@ public class APIManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator AnswerQuestion(string answerID, System.Action<bool> answerResult)
+	public IEnumerator AnswerQuestion(int answerID, float answerTime, System.Action<bool> answerResult, System.Action<int> updateScore)
 	{
 		List<IMultipartFormSection> formData = new()
 		{
 			new MultipartFormDataSection("playerToken", _token.ToString()),
-			new MultipartFormDataSection("answerID", answerID)
+			new MultipartFormDataSection("answerID", answerID.ToString()),
+			new MultipartFormDataSection("answerTime", answerTime.ToString())
 		};
 		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "AnswerQuestion", formData))
 		{
@@ -265,9 +267,19 @@ public class APIManager : MonoBehaviour
 			switch (request.result)
 			{
 				case UnityWebRequest.Result.Success:
-					answerResult(request.downloadHandler.text == "true");
+					var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text);
+					if (!IsNullOrEmpty(result))
+					{
+						answerResult(bool.Parse(result["Correct"]));
+						updateScore(int.Parse(result["Score"]));
+					}
 					break;
 			}
 		}
+	}
+
+	private static bool IsNullOrEmpty(Dictionary<string, string> dict)
+	{
+		return dict is null || dict.Count == 0;
 	}
 }

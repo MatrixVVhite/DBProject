@@ -16,9 +16,12 @@ public class GameManager : MonoBehaviour
 	private bool _gameRunning = false;
 	private bool _waitingForEnd = false;
 	private int _questionsLeft = 0;
+	private float _currentAnswerStartTime = 0f;
 	private Dictionary<string, string> _matchStats;
 
 	public static GameManager Instance { get; private set; }
+
+	public float AnswerDeltaTime { get => Time.unscaledTime - _currentAnswerStartTime; }
 
 	private void Awake()
 	{
@@ -29,7 +32,7 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator RunGame(Dictionary<string, string> newMatchStats)
+	public IEnumerator RunGame(Dictionary<string, string> newMatchStats) // TODO Clean this unsightly mess
 	{
 		_matchStats = newMatchStats;
 		_gameRunning = true;
@@ -41,7 +44,7 @@ public class GameManager : MonoBehaviour
 		{
 			if (!_disabled)
 			{
-				_inGameMenu.UpdateScores(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
+				_inGameMenu.UpdatePlayerStats(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
 				_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
 				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
@@ -49,14 +52,13 @@ public class GameManager : MonoBehaviour
 					_gameRunning = false;
 			}
 		}
-
 		_waitingForEnd = true;
 		_inGameMenu.LoadEndScreen();
 		while (_waitingForEnd)
 		{
 			if (!_disabled)
 			{
-				_inGameMenu.UpdateScores(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
+				_inGameMenu.UpdatePlayerStats(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
 				_questionsLeft = int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]);
 				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
@@ -64,21 +66,13 @@ public class GameManager : MonoBehaviour
 					_waitingForEnd = false;
 			}
 		}
-
 		string message = "";
-
 		if (int.Parse(_matchStats[_player+"Score"])> int.Parse(_matchStats[_otherPlayer + "Score"]))
-		{
-			message = "Congratulations!\n" + "You have won the match";   
-		}
+			message = "Congratulations!\n" + "You have won the match";
 		else if (int.Parse(_matchStats[_player + "Score"]) < int.Parse(_matchStats[_otherPlayer + "Score"]))
-		{
 			message = "Womp Womp...\n" + "It seems that your opponent has defeated you";
-		}
 		else
-		{
 			message = "WOAH!\n" + "It seems that this match was a tie!";
-		}
 		_inGameMenu.UpdateEndMessage(message);
 	}
 
@@ -86,6 +80,11 @@ public class GameManager : MonoBehaviour
 	{
 		if (_gameRunning)
 			StartCoroutine(APIManager.Instance.GetNextQuestion());
+	}
+
+	public void StartTimer()
+	{
+		_currentAnswerStartTime = Time.unscaledTime;
 	}
 
 	private void RefreshStats()

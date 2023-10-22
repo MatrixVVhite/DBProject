@@ -11,7 +11,7 @@ namespace UI
 		[SerializeField] private Image _buttonVisual;
 		[SerializeField] private TMP_Text _answerText;
 		[SerializeField] private Color _defaultColor;
-		private string AnswerID;
+		private int AnswerID;
 
 #if UNITY_EDITOR
 		private void OnValidate()
@@ -22,7 +22,7 @@ namespace UI
 		}
 #endif
 
-		public void UpdateAnswer(string answerID, string Text)
+		public void UpdateAnswer(int answerID, string Text)
 		{
 			_buttonVisual.color = _defaultColor;
 			AnswerID = answerID;
@@ -32,7 +32,7 @@ namespace UI
 
 		public void SubmitAnswer()
 		{
-			StartCoroutine(_inGameMenu.SubmitAnswer(AnswerID, this));
+			StartCoroutine(_inGameMenu.SubmitAnswer(AnswerID, GameManager.Instance.AnswerDeltaTime, this));
 			_button.interactable = false;
 		}
 
