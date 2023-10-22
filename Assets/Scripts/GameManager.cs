@@ -1,7 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UI;
+using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,18 +10,22 @@ public class GameManager : MonoBehaviour
 	public const int MAX_SCORE_PER_MATCH = QUESTIONS_PER_MATCH * MAX_SCORE_PER_QUESTION;
 	public const int GAME_FINISHED_QUESTION_COUNT = QUESTIONS_PER_MATCH + 1;
 	[SerializeField] private InGameMenu _inGameMenu;
-	private string _player;
-	private string _otherPlayer;
-	private bool _disabled = false;
-	private bool _gameRunning = false;
-	private bool _waitingForEnd = false;
-	private int _questionsLeft = 0;
+	private string _yourName;
+	private string _otherName;
+	private int _yourScore = 0;
+	private int _otherScore = 0;
+	private int _yourQuestionsLeft = QUESTIONS_PER_MATCH;
+	private int _otherQuestionsLeft = QUESTIONS_PER_MATCH;
 	private float _currentAnswerStartTime = 0f;
-	private Dictionary<string, string> _matchStats;
 
 	public static GameManager Instance { get; private set; }
-
-	public float AnswerDeltaTime { get => Time.unscaledTime - _currentAnswerStartTime; }
+	private bool GameRunning => YouHaveQuestionsLeft | OtherHaveQuestionsLeft;
+	private bool WaitingForEnd => !YouHaveQuestionsLeft;
+	public float AnswerDeltaTime => Time.unscaledTime - _currentAnswerStartTime;
+	public bool YourScoreIsHigher => _yourScore > _otherScore;
+	public bool OtherScoreIsHigher => _otherScore > _yourScore;
+	public bool YouHaveQuestionsLeft => _yourQuestionsLeft > 0;
+	public bool OtherHaveQuestionsLeft => _otherQuestionsLeft > 0;
 
 	private void Awake()
 	{
@@ -32,70 +36,91 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator RunGame(Dictionary<string, string> newMatchStats) // TODO Clean this unsightly mess
+	private void Reset()
 	{
-		_matchStats = newMatchStats;
-		_gameRunning = true;
-		_player = "P" + _matchStats["YouAre"];
-		_otherPlayer = "P" + (1 + (int.Parse(_matchStats["YouAre"])%2));
-		_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
-		LoadQuestion();
-		while (_gameRunning)
+		_currentAnswerStartTime = 0f;
+		_yourScore = 0;
+		_yourQuestionsLeft = 0;
+		_otherName = string.Empty;
+		_otherQuestionsLeft = 0;
+		_otherScore = 0;
+	}
+
+	public IEnumerator RunGame()
+	{
+		yield return StartCoroutine(GameStart());
+		yield return StartCoroutine(GameLoop());
+		GameEnd();
+	}
+
+	private IEnumerator GameStart()
+	{
+		Reset();
+		yield return StartCoroutine(GetMatchStatus());
+		yield return StartCoroutine(LoadQuestion());
+	}
+
+	private IEnumerator GameLoop()
+	{
+		while (GameRunning)
 		{
-			if (!_disabled)
-			{
-				_inGameMenu.UpdatePlayerStats(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
-				_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
-				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
-				yield return StartCoroutine(Cooldown(1));
-				if (_questionsLeft <= 0)
-					_gameRunning = false;
-			}
+			yield return StartCoroutine(GetMatchStatus());
+			UpdateUI();
+			yield return new WaitForSeconds(1);
+			if (WaitingForEnd)
+				_inGameMenu.LoadEndScreen();
 		}
-		_waitingForEnd = true;
-		_inGameMenu.LoadEndScreen();
-		while (_waitingForEnd)
-		{
-			if (!_disabled)
-			{
-				_inGameMenu.UpdatePlayerStats(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
-				_questionsLeft = int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]);
-				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
-				yield return StartCoroutine(Cooldown(1));
-				if (_questionsLeft <= 0)
-					_waitingForEnd = false;
-			}
-		}
-		string message = "";
-		if (int.Parse(_matchStats[_player+"Score"])> int.Parse(_matchStats[_otherPlayer + "Score"]))
-			message = "Congratulations!\n" + "You have won the match";
-		else if (int.Parse(_matchStats[_player + "Score"]) < int.Parse(_matchStats[_otherPlayer + "Score"]))
-			message = "Womp Womp...\n" + "It seems that your opponent has defeated you";
+	}
+
+	private void GameEnd()
+	{
+		ShowEndMessage();
+	}
+
+	private IEnumerator GetMatchStatus()
+	{
+		yield return StartCoroutine(APIManager.Instance.GetMatchStatus(APIManager.Instance.UpdateMatchStatus));
+	}
+
+	public void OnGetMatchStatusSuccess(int yourScore, int otherScore, int yourQuestionsLeft, int otherQuestionsLeft, string otherName)
+	{
+		_yourScore = yourScore;
+		_otherScore = otherScore;
+		_yourQuestionsLeft = yourQuestionsLeft;
+		_otherQuestionsLeft = otherQuestionsLeft;
+		_otherName = otherName;
+	}
+
+	private void UpdateUI()
+	{
+		_inGameMenu.UpdatePlayerStats(_yourScore, _otherScore, _yourQuestionsLeft, _otherQuestionsLeft);
+	}
+
+	private void ShowEndMessage()
+	{
+		string message;
+		if (YourScoreIsHigher)
+			message = "Congratulations!\nYou have won the match";
+		else if (OtherScoreIsHigher)
+			message = "Womp Womp...\nIt seems that your opponent has defeated you";
 		else
-			message = "WOAH!\n" + "It seems that this match was a tie!";
+			message = "WOAH!\nIt seems that this match was a tie!";
 		_inGameMenu.UpdateEndMessage(message);
 	}
 
-	public void LoadQuestion()
+	public void UpdatePlayerName(string name)
 	{
-		if (_gameRunning)
-			StartCoroutine(APIManager.Instance.GetNextQuestion());
+		_yourName = name;
+	}
+
+	public IEnumerator LoadQuestion()
+	{
+		if (YouHaveQuestionsLeft)
+			yield return StartCoroutine(APIManager.Instance.GetNextQuestion());
 	}
 
 	public void StartTimer()
 	{
 		_currentAnswerStartTime = Time.unscaledTime;
-	}
-
-	private void RefreshStats()
-	{
-		StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
-	}
-
-	private IEnumerator Cooldown(int cooldown)
-	{
-		_disabled = true;
-		yield return new WaitForSeconds(cooldown);
-		_disabled = false;
 	}
 }

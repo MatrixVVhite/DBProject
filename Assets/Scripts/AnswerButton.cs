@@ -32,8 +32,8 @@ namespace UI
 
 		public void SubmitAnswer()
 		{
+			_button.interactable = false; // TODO Make all buttons non-interactable
 			StartCoroutine(_inGameMenu.SubmitAnswer(AnswerID, GameManager.Instance.AnswerDeltaTime, this));
-			_button.interactable = false;
 		}
 
 		public void ColorResponse(bool flag)

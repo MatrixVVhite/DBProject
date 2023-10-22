@@ -264,33 +264,35 @@ namespace Server.Database
 		{
 			if (ExecuteQueryExists($"SELECT LobbyID FROM lobbies WHERE LobbyID = {matchID};"))
 			{
-				int callerID = GetPlayerID(playerToken);
+				int thisPlayerID = GetPlayerID(playerToken);
 				int player1ID = GetPlayer1IDFromLobby(matchID);
 				int player2ID = GetPlayer2IDFromLobby(matchID);
-				int callerIs = callerID == player1ID ? 1 : 2;
-				int player1Score = GetPlayerScore(player1ID);
-				int player2Score = GetPlayerScore(player2ID);
-				string getP1CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player1ID};";
-				int currentP1QuestionID = ExecuteQueryInt(getP1CurrentQuestion);
-				string getP2CurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {player2ID};";
-				int currentP2QuestionID = ExecuteQueryInt(getP2CurrentQuestion);
-				int p1QuestionsAnswered = currentP1QuestionID - 1;
-				int p2QuestionsAnswered = currentP2QuestionID - 1;
-				int p1QuestionsLeft = 10 - p1QuestionsAnswered;
-				int p2QuestionsLeft = 10 - p2QuestionsAnswered;
+				int otherPlayerID = thisPlayerID == player1ID ? player2ID : player1ID;
+				int thisPlayerScore = GetPlayerScore(thisPlayerID);
+				int otherPlayerScore = GetPlayerScore(otherPlayerID);
+				string getThisPlayerCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {thisPlayerID};";
+				int currentThisPlayerQuestionID = ExecuteQueryInt(getThisPlayerCurrentQuestion);
+				string getOtherPlayerCurrentQuestion = $"SELECT CurrentQuestion FROM `session stats` WHERE PlayerID = {otherPlayerID};";
+				int currentOtherPlayerQuestionID = ExecuteQueryInt(getOtherPlayerCurrentQuestion);
+				int thisPlayerQuestionsAnswered = currentThisPlayerQuestionID - 1;
+				int otherPlayerQuestionsAnswered = currentOtherPlayerQuestionID - 1;
+				int thisPlayerQuestionsLeft = 10 - thisPlayerQuestionsAnswered;
+				int otherPlayerQuestionsLeft = 10 - otherPlayerQuestionsAnswered;
 				string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
+				string getOtherPlayerName = $"SELECT PlayerName FROM players WHERE PlayerID = {otherPlayerID};";
+				string otherPlayerName = ExecuteQueryString(getOtherPlayerName);
 				int gameActiveStatus = ExecuteQueryInt(getGameActiveStatus);
-				var dataToSend = new JsonDict()
-			{
-				{ "YouAre", callerIs },
-				{ "P1Score", player1Score },
-				{ "P2Score", player2Score },
-				{ "P1QuestionsAnswered", p1QuestionsAnswered },
-				{ "P2QuestionsAnswered", p2QuestionsAnswered },
-				{ "P1QuestionsLeft", p1QuestionsLeft },
-				{ "P2QuestionsLeft", p2QuestionsLeft},
-				{ "GameActiveStatus", gameActiveStatus }
-			};
+				JsonDict dataToSend = new()
+				{
+					{ "GameActiveStatus", gameActiveStatus },
+					{ "OtherPlayerName", otherPlayerName },
+					{ "YourScore", thisPlayerScore },
+					{ "OtherScore", otherPlayerScore },
+					{ "YourQuestionsAnswered", thisPlayerQuestionsAnswered },
+					{ "OtherQuestionsAnswered", otherPlayerQuestionsAnswered },
+					{ "YourQuestionsLeft", thisPlayerQuestionsLeft },
+					{ "OtherQuestionsLeft", otherPlayerQuestionsLeft}
+				};
 				return dataToSend;
 			}
 			else

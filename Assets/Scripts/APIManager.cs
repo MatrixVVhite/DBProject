@@ -170,10 +170,21 @@ public class APIManager : MonoBehaviour
 				{
 					yield return IsMatchActive((callback) => { joinBool = callback; });
 				}
-				yield return GetMatchStatus((newDict) => { StartCoroutine(GameManager.Instance.RunGame(newDict)); });
+				yield return StartCoroutine(GetMatchStatus(UpdateMatchStatus));
+				StartCoroutine(GameManager.Instance.RunGame());
 				_mainMenu.OnStartGame();
 				break;
 		}
+	}
+
+	public void UpdateMatchStatus(Dictionary<string, string> statusDict)
+	{
+		GameManager.Instance.OnGetMatchStatusSuccess(
+			int.Parse(statusDict["YourScore"]),
+			int.Parse(statusDict["OtherScore"]),
+			int.Parse(statusDict["YourQuestionsLeft"]),
+			int.Parse(statusDict["OtherQuestionsLeft"]),
+			statusDict["OtherPlayerName"]);
 	}
 
 	public IEnumerator LeaveMatch()
@@ -206,7 +217,7 @@ public class APIManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> statusCallback)
+	public IEnumerator GetMatchStatus(System.Action<Dictionary<string, string>> statusCallback)
 	{
 		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _matchID + "&playerToken=" + _token);
 		yield return request.SendWebRequest();

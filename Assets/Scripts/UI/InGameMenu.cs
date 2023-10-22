@@ -56,8 +56,8 @@ namespace UI
 				(isCorrect) => { button.ColorResponse(isCorrect); },
 				(updatedScore) => { UpdatePlayerScore(updatedScore); }
 			));
-			yield return new WaitForSeconds(2);
-			GameManager.Instance.LoadQuestion();
+			yield return new WaitForSeconds(1);
+			StartCoroutine(GameManager.Instance.LoadQuestion());
 		}
 
 		public void UpdatePlayerScore(int yourScore)
