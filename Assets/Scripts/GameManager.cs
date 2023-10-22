@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
 		_player = "P" + _matchStats["YouAre"];
 		_otherPlayer = "P" + (1 + (int.Parse(_matchStats["YouAre"])%2));
 		_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
-		LoadQuestion(); // TODO Figure out whether this should be here or inside the "while (_gameRunning)" loop
+		LoadQuestion();
 		while (_gameRunning)
 		{
 			if (!_disabled)

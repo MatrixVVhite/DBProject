@@ -167,9 +167,16 @@ public class UIManager : MonoBehaviour
 
 	public void UpdateQuestionUI()
 	{
-		_question.text = _currentQuestion["QuestionText"];
-		for (int i = 0; i < 4; i++)
-			_answers[i].UpdateAnswer((i+1).ToString(), _currentQuestion["Answer" + (i + 1)]);
+		try
+		{
+			_question.text = _currentQuestion["QuestionText"];
+			for (int i = 0; i < 4; i++)
+				_answers[i].UpdateAnswer((i + 1).ToString(), _currentQuestion["Answer" + (i + 1)]);
+		}
+		catch (KeyNotFoundException)
+		{
+			return;
+		}
 	}
 
 	public IEnumerator SubmitAnswer(string AnswerID, ButtonManager button)
