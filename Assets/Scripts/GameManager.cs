@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UI;
 
 public class GameManager : MonoBehaviour
 {
-	[SerializeField] private UIManager _UIManager;
+	[SerializeField] private InGameMenu _inGameMenu;
 	[SerializeField] private APIManager _APIManager;
 	private string _player;
 	private string _otherPlayer;
@@ -26,7 +27,7 @@ public class GameManager : MonoBehaviour
 		{
 			if (!_disabled)
 			{
-				_UIManager.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
+				_inGameMenu.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
 				_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
 				yield return StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
@@ -36,12 +37,12 @@ public class GameManager : MonoBehaviour
 		}
 
 		_waitingForEnd = true;
-		_UIManager.LoadEndScreen();
+		_inGameMenu.LoadEndScreen();
 		while (_waitingForEnd)
 		{
 			if (!_disabled)
 			{
-				_UIManager.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
+				_inGameMenu.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
 				_questionsLeft = int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]);
 				yield return StartCoroutine(_APIManager.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
@@ -63,7 +64,7 @@ public class GameManager : MonoBehaviour
 		{
 			message = "WOAH!\n" + "it seems that this match was a tie!";
 		}
-		_UIManager.UpdateEndMessage(message);
+		_inGameMenu.UpdateEndMessage(message);
 	}
 
 	public void LoadQuestion()

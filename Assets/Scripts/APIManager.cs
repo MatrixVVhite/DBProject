@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
-using UnityEngine.SceneManagement;
+using UI;
 
 public class APIManager : MonoBehaviour
 {
 	const string API_URL = "https://localhost:7166/api/";
 
-	[SerializeField] private UIManager _UIManager;
 	[SerializeField] private GameManager _gameManager;
+	[SerializeField] private MainMenu _mainMenu;
+	[SerializeField] private InGameMenu _inGameMenu;
 	private int _token = 0;
 	private string _MatchID = "0";
 	private bool _queueFlag = true;
@@ -31,7 +32,7 @@ public class APIManager : MonoBehaviour
 			{
 				case UnityWebRequest.Result.Success:
 					_token = int.Parse(request.downloadHandler.text);
-					_UIManager.OnConnectToServerSuccess();
+					_mainMenu.OnConnectToServerSuccess();
 					break;
 			}
 		}
@@ -52,7 +53,7 @@ public class APIManager : MonoBehaviour
 			{
 				case UnityWebRequest.Result.Success:
 					Debug.Log("Disconnect Attempt Post Successful");
-					_UIManager.OnDisconnectFromServerSuccess();
+					_mainMenu.OnDisconnectFromServerSuccess();
 					break;
 			}
 		}
@@ -70,7 +71,7 @@ public class APIManager : MonoBehaviour
 			switch (request.result)
 			{
 				case UnityWebRequest.Result.Success:
-					_UIManager.OnJoinQueueSuccess();
+					_mainMenu.OnJoinQueueSuccess();
 					StartCoroutine(TryLoadMatch());
 					break;
 			}
@@ -112,7 +113,7 @@ public class APIManager : MonoBehaviour
 					case UnityWebRequest.Result.Success:
 						Debug.Log("Left Queue");
 						_queueFlag = false;
-						_UIManager.OnLeftQueueSuccess();
+						_mainMenu.OnLeftQueueSuccess();
 						break;
 				}
 			}
@@ -135,12 +136,12 @@ public class APIManager : MonoBehaviour
 					case UnityWebRequest.Result.Success:
 						if (request.downloadHandler.text == "0") 
 						{
-							_UIManager.TriggerWaitingText();
+							_mainMenu.TriggerWaitingText();
 							Debug.Log("Match Not Found");
 							break;
 						}
 						_MatchID = request.downloadHandler.text;
-						_UIManager.OnMatchFound();
+						_mainMenu.OnMatchFound();
 						Debug.Log("result success");
 						break;
 				}
@@ -170,7 +171,7 @@ public class APIManager : MonoBehaviour
 						yield return IsMatchActive((callback) => { joinBool = callback; });
 					}
 					yield return GetMatchStatus((newDict) => { StartCoroutine(_gameManager.RunGame(newDict)); }) ;
-					_UIManager.OnStartGame();
+					_mainMenu.OnStartGame();
 					break;
 			}
 		}
@@ -189,7 +190,7 @@ public class APIManager : MonoBehaviour
 			{
 				case UnityWebRequest.Result.Success:
 					Debug.Log("Disconnect Attempt Post Successful");
-					_UIManager.OnExitMatchSuccessful();
+					_inGameMenu.OnExitMatchSuccessful();
 					break;
 			}
 		}
@@ -234,8 +235,8 @@ public class APIManager : MonoBehaviour
 			switch (request.result)
 			{
 				case UnityWebRequest.Result.Success:
-					_UIManager.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
-					_UIManager.UpdateQuestionUI();
+					_inGameMenu.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
+					_inGameMenu.UpdateQuestionUI();
 					break;
 			}
 		}
