@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class ButtonManager : MonoBehaviour
+public class AnswerButton : MonoBehaviour
 {
 	[SerializeField] private UIManager _uiManager;
 	[SerializeField] private Button _button;

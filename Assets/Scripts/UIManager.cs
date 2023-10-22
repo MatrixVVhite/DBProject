@@ -143,7 +143,7 @@ public class UIManager : MonoBehaviour
 	#region GAME
 	#region FIELDS
 	[SerializeField] TextMeshProUGUI _question;
-	[SerializeField] ButtonManager[] _answers;
+	[SerializeField] AnswerButton[] _answers;
 	[SerializeField] TextMeshProUGUI[] _playerStats;
 	[SerializeField] GameObject _endGameScreen;
 	[SerializeField] TextMeshProUGUI _finalMessage;
@@ -179,7 +179,7 @@ public class UIManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator SubmitAnswer(string AnswerID, ButtonManager button)
+	public IEnumerator SubmitAnswer(string AnswerID, AnswerButton button)
 	{
 		yield return StartCoroutine(_APIManager.AnswerQuestion(AnswerID, (isCorrect) => {
 			button.ColorResponse(isCorrect); 
