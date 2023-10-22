@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UI;
+using System.Security;
 
 public class APIManager : MonoBehaviour
 {
@@ -33,18 +34,16 @@ public class APIManager : MonoBehaviour
 		{
 			new MultipartFormDataSection("playerName", playerName)
 		};
-		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", formData))
+		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", formData);
+		Debug.Log("Join Attempt Post Defined");
+		yield return request.SendWebRequest();
+		Debug.Log("Join Attempt Post Happened");
+		switch (request.result)
 		{
-			Debug.Log("Join Attempt Post Defined");
-			yield return request.SendWebRequest();
-			Debug.Log("Join Attempt Post Happened");
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					_token = int.Parse(request.downloadHandler.text);
-					_mainMenu.OnConnectToServerSuccess();
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				_token = int.Parse(request.downloadHandler.text);
+				_mainMenu.OnConnectToServerSuccess();
+				break;
 		}
 	}
 
@@ -54,18 +53,16 @@ public class APIManager : MonoBehaviour
 		{
 			new MultipartFormDataSection("playerToken", _token.ToString())
 		};
-		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "DisconnectFromServer", formData))
+		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "DisconnectFromServer", formData);
+		Debug.Log("Disconnect Attempt Post Defined");
+		yield return request.SendWebRequest();
+		Debug.Log("Disconnect Attempt Post Happened");
+		switch (request.result)
 		{
-			Debug.Log("Disconnect Attempt Post Defined");
-			yield return request.SendWebRequest();
-			Debug.Log("Disconnect Attempt Post Happened");
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					Debug.Log("Disconnect Attempt Post Successful");
-					_mainMenu.OnDisconnectFromServerSuccess();
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				Debug.Log("Disconnect Attempt Post Successful");
+				_mainMenu.OnDisconnectFromServerSuccess();
+				break;
 		}
 	}
 
@@ -75,35 +72,31 @@ public class APIManager : MonoBehaviour
 		{
 			new MultipartFormDataSection("playerToken", _token.ToString())
 		};
-		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "SubmitTicket", formData))
+		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "SubmitTicket", formData);
+		yield return request.SendWebRequest();
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					_mainMenu.OnJoinQueueSuccess();
-					StartCoroutine(TryLoadMatch());
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				_mainMenu.OnJoinQueueSuccess();
+				StartCoroutine(TryLoadMatch());
+				break;
 		}
 	}
 
 	public IEnumerator IsTicketValid(System.Action<bool> callback)
 	{
-		using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token))
+		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token);
+		yield return request.SendWebRequest();
+		Debug.Log(request.result);
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			Debug.Log(request.result);
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					if (request.downloadHandler.text == "true") callback(true);
-					else callback(false);
-					break;
-				default: callback(false); break;
-			}
-			yield return new WaitForSecondsRealtime(1);
+			case UnityWebRequest.Result.Success:
+				if (request.downloadHandler.text == "true") callback(true);
+				else callback(false);
+				break;
+			default: callback(false); break;
 		}
+		yield return new WaitForSecondsRealtime(1);
 	}
 
 	public IEnumerator RevokeTicket()
@@ -115,17 +108,15 @@ public class APIManager : MonoBehaviour
 			{
 				new MultipartFormDataSection("playerToken", _token.ToString())
 			};
-			using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "RevokeTicket", formData))
+			using UnityWebRequest request = UnityWebRequest.Post(API_URL + "RevokeTicket", formData);
+			yield return request.SendWebRequest();
+			switch (request.result)
 			{
-				yield return request.SendWebRequest();
-				switch (request.result)
-				{
-					case UnityWebRequest.Result.Success:
-						Debug.Log("Left Queue");
-						_queueFlag = false;
-						_mainMenu.OnLeftQueueSuccess();
-						break;
-				}
+				case UnityWebRequest.Result.Success:
+					Debug.Log("Left Queue");
+					_queueFlag = false;
+					_mainMenu.OnLeftQueueSuccess();
+					break;
 			}
 		}
 	}
@@ -167,23 +158,21 @@ public class APIManager : MonoBehaviour
 		{
 			new MultipartFormDataSection("playerToken", _token.ToString())
 		};
-		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "JoinMatch", formData))
+		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "JoinMatch", formData);
+		yield return request.SendWebRequest();
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					Debug.Log("Match Join Post Successful");
-					_queueFlag = false;
-					string joinBool = "false";
-					while (joinBool == "false")
-					{
-						yield return IsMatchActive((callback) => { joinBool = callback; });
-					}
-					yield return GetMatchStatus((newDict) => { StartCoroutine(GameManager.Instance.RunGame(newDict)); }) ;
-					_mainMenu.OnStartGame();
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				Debug.Log("Match Join Post Successful");
+				_queueFlag = false;
+				string joinBool = "false";
+				while (joinBool == "false")
+				{
+					yield return IsMatchActive((callback) => { joinBool = callback; });
+				}
+				yield return GetMatchStatus((newDict) => { StartCoroutine(GameManager.Instance.RunGame(newDict)); });
+				_mainMenu.OnStartGame();
+				break;
 		}
 	}
 
@@ -193,63 +182,55 @@ public class APIManager : MonoBehaviour
 		{
 			new MultipartFormDataSection("playerToken", _token.ToString())
 		};
-		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "LeaveMatch", formData))
+		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "LeaveMatch", formData);
+		yield return request.SendWebRequest();
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					Debug.Log("Disconnect Attempt Post Successful");
-					_inGameMenu.OnExitMatchSuccessful();
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				Debug.Log("Disconnect Attempt Post Successful");
+				_inGameMenu.OnExitMatchSuccessful();
+				break;
 		}
 	}
 
 	public IEnumerator IsMatchActive(System.Action<string> StatusCallback)
 	{
-		using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchActive/" + _token))
+		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchActive/" + _token);
+		yield return request.SendWebRequest();
+		Debug.Log(request.result);
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			Debug.Log(request.result);
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					StatusCallback(request.downloadHandler.text);
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				StatusCallback(request.downloadHandler.text);
+				break;
 		}
 	}
 
 	public IEnumerator GetMatchStatus(System.Action<Dictionary<string,string>> statusCallback)
 	{
-		using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _matchID + "&playerToken=" + _token))
+		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _matchID + "&playerToken=" + _token);
+		yield return request.SendWebRequest();
+		Debug.Log(request.result);
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			Debug.Log(request.result);
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					statusCallback(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				statusCallback(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
+				break;
 		}
 	}
 
 	public IEnumerator GetNextQuestion()
 	{
-		using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetNextQuestion/" + _token))
+		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetNextQuestion/" + _token);
+		yield return request.SendWebRequest();
+		Debug.Log(request.result);
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			Debug.Log(request.result);
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					GameManager.Instance.StartTimer();
-					_inGameMenu.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
-					_inGameMenu.UpdateQuestionUI();
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				GameManager.Instance.StartTimer();
+				_inGameMenu.UpdateQuestion(JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text));
+				_inGameMenu.UpdateQuestionUI();
+				break;
 		}
 	}
 
@@ -261,20 +242,18 @@ public class APIManager : MonoBehaviour
 			new MultipartFormDataSection("answerID", answerID.ToString()),
 			new MultipartFormDataSection("answerTime", answerTime.ToString())
 		};
-		using (UnityWebRequest request = UnityWebRequest.Post(API_URL + "AnswerQuestion", formData))
+		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "AnswerQuestion", formData);
+		yield return request.SendWebRequest();
+		switch (request.result)
 		{
-			yield return request.SendWebRequest();
-			switch (request.result)
-			{
-				case UnityWebRequest.Result.Success:
-					var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text);
-					if (!IsNullOrEmpty(result))
-					{
-						answerResult(bool.Parse(result["Correct"]));
-						updateScore(int.Parse(result["Score"]));
-					}
-					break;
-			}
+			case UnityWebRequest.Result.Success:
+				var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text);
+				if (!IsNullOrEmpty(result))
+				{
+					answerResult(bool.Parse(result["Correct"]));
+					updateScore(int.Parse(result["Score"]));
+				}
+				break;
 		}
 	}
 
