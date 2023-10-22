@@ -121,8 +121,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 4346355464403685727}
+        m_TargetAssemblyTypeName: UI.MainMenu, Assembly-CSharp
         m_MethodName: OnExitGameButtonClicked
         m_Mode: 1
         m_Arguments:
@@ -306,8 +306,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 4346355464403685727}
+        m_TargetAssemblyTypeName: UI.MainMenu, Assembly-CSharp
         m_MethodName: OnStartMatchButtonClicked
         m_Mode: 1
         m_Arguments:
@@ -1061,6 +1061,7 @@ GameObject:
   - component: {fileID: 4523366468404591158}
   - component: {fileID: 8582233149368001245}
   - component: {fileID: 7679095317654185180}
+  - component: {fileID: 4346355464403685727}
   m_Layer: 5
   m_Name: Main Menu UI
   m_TagString: Untagged
@@ -1130,6 +1131,27 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &4346355464403685727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3899593182966478730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e48d9679d4d7d4a44b17836c19c53441, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _registration: {fileID: 3945425584037383688}
+  _playerNameInputField: {fileID: 8136345214235124157}
+  _connectButton: {fileID: 7204596005616676784}
+  _joinQueueButton: {fileID: 4972801423353216261}
+  _startMatchButton: {fileID: 2565854983386747660}
+  _exitGameButton: {fileID: 5812104442428889613}
+  _disconnectButton: {fileID: 2935035416559712072}
+  _leaveQueueButton: {fileID: 88070746694639855}
+  _connectionFailed: {fileID: 7599038899329920334}
 --- !u!1 &3945425584037383688
 GameObject:
   m_ObjectHideFlags: 0
@@ -1824,8 +1846,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 4346355464403685727}
+        m_TargetAssemblyTypeName: UI.MainMenu, Assembly-CSharp
         m_MethodName: OnDisconnectButtonClicked
         m_Mode: 1
         m_Arguments:
@@ -2293,8 +2315,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 4346355464403685727}
+        m_TargetAssemblyTypeName: UI.MainMenu, Assembly-CSharp
         m_MethodName: OnLeaveQueueButtonClicked
         m_Mode: 1
         m_Arguments:
@@ -2426,8 +2448,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 4346355464403685727}
+        m_TargetAssemblyTypeName: UI.MainMenu, Assembly-CSharp
         m_MethodName: OnJoinQueueButtonClicked
         m_Mode: 1
         m_Arguments:
@@ -2559,8 +2581,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+      - m_Target: {fileID: 4346355464403685727}
+        m_TargetAssemblyTypeName: UI.MainMenu, Assembly-CSharp
         m_MethodName: OnConnectButtonClicked
         m_Mode: 1
         m_Arguments:
