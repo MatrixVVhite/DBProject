@@ -434,12 +434,19 @@ namespace Server.Database
 			else return true;
 		}
 
-        private bool AddScore(int playerID)
+		/// <summary>
+		/// Adds score to this player.
+		/// </summary>
+		/// <param name="playerID">ID of the player to add score to</param>
+		/// <param name="score">Amount to add</param>
+		/// <returns>(Success/Failure, updated score)</returns>
+		private (bool, int) AddScore(int playerID, int score)
         {
 			string getCurrentScore = $"SELECT Score FROM `session stats` WHERE PlayerID = {playerID} LIMIT 1;";
 			int currentScore = ExecuteQueryInt(getCurrentScore);
-			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore + 10} WHERE (PlayerID = {playerID});";
-			return ExecuteCommand(addToCurrentScore) > 0;
+			currentScore += score;
+			string addToCurrentScore = $"UPDATE `session stats` SET Score = {currentScore} WHERE (PlayerID = {playerID});";
+			return (ExecuteCommand(addToCurrentScore) > 0, currentScore);
         }
 
         private bool TestTwoStatements(string statement1, string statement2)
@@ -636,31 +643,52 @@ namespace Server.Database
 		/// <param name="playerToken">Unique token of the answering player</param>
 		/// <param name="answerID">ID (Number between 1-4) of the answer to register</param>
 		/// <returns>Success/Failure</returns>
-		public bool RegisterAnswer(int playerToken, int answerID)
+		public JsonDict RegisterAnswer(int playerToken, int answerID, float answerTime)
 		{
+			JsonDict ret = new()
+			{
+				{ "Correct", false },
+				{ "Score", 0 }
+			};
 			int playerID = GetPlayerID(playerToken);
 			string getCorrectAnswerQuery = $"SELECT questions.CorrectAnswer FROM questions INNER JOIN " +
 				$"`session stats` ON questions.QuestionID = `session stats`.CurrentQuestion WHERE " +
 				$"`session stats`.PlayerID = {playerID};";
+			bool correct;
 			try
 			{
-				if (answerID == ExecuteQueryInt(getCorrectAnswerQuery)) 
-				{
-					AddScore(playerID);
-					Add1ToCurrentQuestion(playerID);
-					return true; 
-				}
-				else 
-				{
-					Add1ToCurrentQuestion(playerID);
-					return false;
-				}
+				correct = answerID == ExecuteQueryInt(getCorrectAnswerQuery);
 			}
-			catch (Exception ex) // TODO State what exception you are catching
+			catch (MySqlException)
 			{
-				Add1ToCurrentQuestion(playerID);
-				return false;
+				return ret;
 			}
+			int scoreToAdd = 0;
+			if (correct)
+				scoreToAdd = CalculateScore(answerTime);
+			(bool success, int updatedScore) = AddScore(playerID, scoreToAdd);
+			if (success)
+			{
+				ret["Correct"] = correct;
+				ret["Score"] = updatedScore;
+			}
+			Add1ToCurrentQuestion(playerID);
+			return ret;
+		}
+
+		private static int CalculateScore(float answerTime)
+		{
+			const float TIME_LIMIT = 10f;
+			const float TIME_THRESHOLD_FOR_FULL_SCORE = 2f;
+			const float TIME_SPAN_SCALING_SCORE = TIME_LIMIT - TIME_THRESHOLD_FOR_FULL_SCORE;
+			const int SCORE_BASE = 5;
+			const int SCORE_EXTRA = 5;
+			const int MAX_SCORE_PER_QUESTION = SCORE_BASE + SCORE_EXTRA;
+			Debug.Assert(MAX_SCORE_PER_QUESTION == 10);
+			float penalizedTime = answerTime - TIME_THRESHOLD_FOR_FULL_SCORE;
+			float bonusScoreCoefficient = Utility.ClampRange((TIME_SPAN_SCALING_SCORE - penalizedTime) / TIME_SPAN_SCALING_SCORE, 0, 1f);
+			int bonusScore = (int)MathF.Round(bonusScoreCoefficient * SCORE_BASE);
+			return SCORE_BASE + bonusScore;
 		}
 
 		/// <summary>

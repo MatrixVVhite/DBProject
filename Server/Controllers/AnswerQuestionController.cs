@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Server.Database;
+using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace Server.Controllers
 {
@@ -8,9 +9,9 @@ namespace Server.Controllers
 	public class AnswerQuestionController : ControllerBase
 	{
 		[HttpPost]
-		public bool Post([FromForm] int playerToken, [FromForm] int answerID)
+		public JsonDict Post([FromForm] int playerToken, [FromForm] int answerID, [FromForm] float answerTime)
 		{
-			return DatabaseManager.Instance.RegisterAnswer(playerToken, answerID);
+			return DatabaseManager.Instance.RegisterAnswer(playerToken, answerID, answerTime);
 		}
 	}
 }
