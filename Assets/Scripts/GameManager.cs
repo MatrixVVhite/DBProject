@@ -5,6 +5,10 @@ using UI;
 
 public class GameManager : MonoBehaviour
 {
+	public const int QUESTIONS_PER_MATCH = 10;
+	public const int MAX_SCORE_PER_QUESTION = 10;
+	public const int MAX_SCORE_PER_MATCH = QUESTIONS_PER_MATCH * MAX_SCORE_PER_QUESTION;
+	public const int GAME_FINISHED_QUESTION_COUNT = QUESTIONS_PER_MATCH + 1;
 	[SerializeField] private InGameMenu _inGameMenu;
 	private string _player;
 	private string _otherPlayer;
@@ -37,7 +41,7 @@ public class GameManager : MonoBehaviour
 		{
 			if (!_disabled)
 			{
-				_inGameMenu.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
+				_inGameMenu.UpdateScores(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
 				_questionsLeft = int.Parse(_matchStats[_player + "QuestionsLeft"]);
 				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
@@ -52,11 +56,12 @@ public class GameManager : MonoBehaviour
 		{
 			if (!_disabled)
 			{
-				_inGameMenu.UpdateScores(_matchStats[_player + "Score"], _matchStats[_otherPlayer + "Score"], _matchStats[_player + "QuestionsLeft"], _matchStats[_otherPlayer + "QuestionsLeft"]);
+				_inGameMenu.UpdateScores(int.Parse(_matchStats[_player + "Score"]), int.Parse(_matchStats[_otherPlayer + "Score"]), int.Parse(_matchStats[_player + "QuestionsLeft"]), int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]));
 				_questionsLeft = int.Parse(_matchStats[_otherPlayer + "QuestionsLeft"]);
 				yield return StartCoroutine(APIManager.Instance.GetMatchStatus((Status) => { _matchStats = Status; }));
 				yield return StartCoroutine(Cooldown(1));
-				if (_questionsLeft <= 0) _waitingForEnd = false;
+				if (_questionsLeft <= 0)
+					_waitingForEnd = false;
 			}
 		}
 
@@ -64,15 +69,15 @@ public class GameManager : MonoBehaviour
 
 		if (int.Parse(_matchStats[_player+"Score"])> int.Parse(_matchStats[_otherPlayer + "Score"]))
 		{
-			message = "Congratulations!\n" + "you have won the match";   
+			message = "Congratulations!\n" + "You have won the match";   
 		}
 		else if (int.Parse(_matchStats[_player + "Score"]) < int.Parse(_matchStats[_otherPlayer + "Score"]))
 		{
-			message = "Womp Womp...\n" + "it seems that your opponent has defeated you";
+			message = "Womp Womp...\n" + "It seems that your opponent has defeated you";
 		}
 		else
 		{
-			message = "WOAH!\n" + "it seems that this match was a tie!";
+			message = "WOAH!\n" + "It seems that this match was a tie!";
 		}
 		_inGameMenu.UpdateEndMessage(message);
 	}

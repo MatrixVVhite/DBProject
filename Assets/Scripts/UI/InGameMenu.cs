@@ -11,10 +11,11 @@ namespace UI
 		#region FIELDS
 		[SerializeField] private TextMeshProUGUI _question;
 		[SerializeField] private AnswerButton[] _answers;
-		[SerializeField] private TextMeshProUGUI[] _playerStats;
+		[SerializeField] private PlayerStatusSidebar _playerStats;
+		[SerializeField] private PlayerStatusSidebar _otherStats;
 		[SerializeField] private GameObject _endGameScreen;
 		[SerializeField] private TextMeshProUGUI _finalMessage;
-		[SerializeField] private Button _exitMatchEnd;
+		[SerializeField] private Button _exitMatchButton;
 		private Dictionary<string, string> _currentQuestion;
 		#endregion
 
@@ -55,12 +56,12 @@ namespace UI
 			GameManager.Instance.LoadQuestion();
 		}
 
-		public void UpdateScores(string yourScore, string otherScore, string yourQuestionsLeft, string otherQuestionsLeft)
+		public void UpdateScores(int yourScore, int otherScore, int yourQuestionsLeft, int otherQuestionsLeft)
 		{
-			_playerStats[0].text = "Your Score: \n" + yourScore;
-			_playerStats[1].text = "Opponent's Score: \n" + otherScore;
-			_playerStats[2].text = "Questions Left: \n" + yourQuestionsLeft;
-			_playerStats[3].text = "Questions Left: \n" + otherQuestionsLeft;
+			_playerStats.UpdateScore(yourScore);
+			_playerStats.UpdateQuestions(yourQuestionsLeft);
+			_otherStats.UpdateScore(otherScore);
+			_otherStats.UpdateQuestions(otherQuestionsLeft);
 		}
 
 		public void LoadEndScreen()
@@ -70,7 +71,7 @@ namespace UI
 
 		public void UpdateEndMessage(string message)
 		{
-			_exitMatchEnd.interactable = true;
+			_exitMatchButton.interactable = true;
 			_finalMessage.text = message;
 		}
 
