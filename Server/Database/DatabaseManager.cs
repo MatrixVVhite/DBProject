@@ -135,7 +135,7 @@ namespace Server.Database
 			return TryExecuteQuery(query, out bool _, key);
 		}
 
-		private bool TryExecuteQuery(string query, ref string val, string? key = null)
+		private bool TryExecuteQuery(string query, out string val, string? key = null)
 		{
 			val = string.Empty;
 			try
@@ -203,8 +203,7 @@ namespace Server.Database
 		/// <returns>Whether this unique token already exists</returns>
 		public bool GetPlayerTokenExists(int playerToken)
 		{
-			string query = $"SELECT PlayerToken FROM players WHERE PlayerToken = {playerToken} LIMIT 1;";
-			return ExecuteQueryExists(query);
+			return ExecuteQueryExists(QueryPlayerID(playerToken));
 		}
 
 		/// <summary>
@@ -229,7 +228,14 @@ namespace Server.Database
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby = GetPlayerLobby(playerID);
-			string otherPlayerName = ExecuteQueryString(QueryPlayerName(playerID));
+			bool lobbyExists = playerLobby != 0;
+			string otherPlayerName = string.Empty;
+			if (lobbyExists)
+			{
+				(int player1ID, int player2ID) = GetPlayerIDFromLobby(playerLobby);
+				int otherPlayerID = playerID == player1ID ? player2ID : player1ID;
+				otherPlayerName = ExecuteQueryString(QueryPlayerName(otherPlayerID));
+			}
 			JsonDict ret = new()
 			{
 				{ "Found", playerLobby != 0 },
@@ -337,14 +343,12 @@ namespace Server.Database
 
 		private int GetPlayerID(int playerToken)
 		{
-			string getPlayerQuery = $"{QueryPlayerID(playerToken)};"; // TODO Test if I need this line
-			return ExecuteQueryInt(getPlayerQuery);
+			return ExecuteQueryInt(QueryPlayerID(playerToken));
 		}
 
 		private int GetPlayerToken(int playerID)
 		{
-			string getPlayerQuery = $"{QueryPlayerToken(playerID)};"; // TODO Test if I need this line
-			return ExecuteQueryInt(getPlayerQuery);
+			return ExecuteQueryInt(QueryPlayerToken(playerID));
 		}
 
 		private int GetPlayerLobby(int playerID)
@@ -366,6 +370,13 @@ namespace Server.Database
 		{
 			string getPlayer2Query = $"SELECT Player2ID FROM lobbies WHERE LobbyID = {lobbyID};";
 			return ExecuteQueryInt(getPlayer2Query);
+		}
+
+		private (int, int) GetPlayerIDFromLobby(int lobbyID)
+		{
+			string playerInLobbyQuery = $"SELECT Player1ID, Player2ID FROM lobbies WHERE LobbyID = {lobbyID} LIMIT 1;";
+			JsonDict players = ExecuteQuery(playerInLobbyQuery);
+			return (int.Parse(players["Player1ID"].ToString()), int.Parse(players["Player2ID"].ToString()));
 		}
 
 		private bool GetHandshakeStatusFromLobby(int lobbyID)
@@ -554,31 +565,17 @@ namespace Server.Database
 		public bool RemovePlayerTicket(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
-			int playerLobby;
-			if (GetPlayerLobby(playerID) != 0)
-				playerLobby = GetPlayerLobby(playerID);
-			else
-				playerLobby = 0;
+			int playerLobby = GetPlayerLobby(playerID);
 			if (playerLobby != 0)
 			{
 				int player1ID = GetPlayer1IDFromLobby(playerLobby);
 				int player2ID = GetPlayer2IDFromLobby(playerLobby);
-				if (player1ID == playerID) 
-				{
-					AcceptMatchTo0(player2ID);
-					SubmitPlayerTicket(GetPlayerToken(player2ID));
-					UpdatePlayerStatus(player2ID, PlayerStatus.Queue);
-					RemovePlayerStats(player1ID);
-                    RemovePlayerStats(player2ID);
-                }
-				else 
-				{
-                    AcceptMatchTo0(player1ID);
-                    SubmitPlayerTicket(GetPlayerToken(player1ID));
-					UpdatePlayerStatus(player1ID, PlayerStatus.Queue);
-                    RemovePlayerStats(player1ID);
-                    RemovePlayerStats(player2ID);
-                }
+				int otherPlayerID = playerID == player1ID ? player2ID : player1ID;
+				AcceptMatchTo0(otherPlayerID);
+				SubmitPlayerTicket(GetPlayerToken(otherPlayerID));
+				UpdatePlayerStatus(otherPlayerID, PlayerStatus.Queue);
+				RemovePlayerStats(playerID);
+				RemovePlayerStats(otherPlayerID);
 				RemoveLobby(playerLobby);
 			}
 			string deleteFromQueueQuery = $"DELETE FROM queue WHERE(PlayerID = {playerID});";
@@ -726,7 +723,7 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="matchID">Unique ID of the match to start</param>
 		/// <returns>Success/Failure</returns>
-		private bool StartMatch(int matchID) // TODO Remove accepting players from the waiting queue
+		private bool StartMatch(int matchID)
 		{
 			//Get both players in the lobby. If both players signal 1 on queue - AcceptMatch, update both players' status to 2, and go through with the match
 			//If 1 player leaves or doesn't handshake in time, use EndMatch(matchID) and use SubmitPlayerTicket(int playerToken) on the active player
