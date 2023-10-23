@@ -24,7 +24,7 @@ namespace UI
 		public void UpdateScore(int score)
 		{
 			_scoreBar.UpdateText($"Score: {score}");
-			_scoreBar.UpdateBar(score/(float)GameManager.MAX_SCORE_PER_MATCH);
+			_scoreBar.UpdateBar(score/(float)GameManager.MAX_SCORE_PER_MATCH, true);
 		}
 
 		public void UpdateQuestions(int questionsLeft)
@@ -33,7 +33,7 @@ namespace UI
 			{
 				int questionNumber = GameManager.QUESTIONS_PER_MATCH - questionsLeft;
 				_questionsLeft.UpdateText($"Question #{questionNumber + 1}");
-				_questionsLeft.UpdateBar(questionNumber / (float)GameManager.QUESTIONS_PER_MATCH);
+				_questionsLeft.UpdateBar(questionNumber / (float)GameManager.QUESTIONS_PER_MATCH, true);
 			}
 			else
 			{

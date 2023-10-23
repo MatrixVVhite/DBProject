@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using DG.Tweening;
 
 namespace UI
 {
@@ -20,10 +21,14 @@ namespace UI
 			_text.text = text;
 		}
 
-		public void UpdateBar(float value)
+		public void UpdateBar(float value, bool tween = false)
 		{
 			Debug.Assert(value <= 1f & value >= 0f);
-			_barTransform.localScale = _vertical ? new(1, value, 1) : new(value, 1, 1);
+			Vector3 newScale = _vertical ? new(1, value, 1) : new(value, 1, 1);
+			if (tween)
+				_barTransform.DOScale(newScale, 0.5f).SetEase(Ease.OutCubic);
+			else
+				_barTransform.localScale = newScale;
 		}
 	}
 }
