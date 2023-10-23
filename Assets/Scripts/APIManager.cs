@@ -34,9 +34,7 @@ public class APIManager : MonoBehaviour
 			new MultipartFormDataSection("playerName", playerName)
 		};
 		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "ConnectToServer", formData);
-		Debug.Log("Join Attempt Post Defined");
 		yield return request.SendWebRequest();
-		Debug.Log("Join Attempt Post Happened");
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
@@ -54,13 +52,10 @@ public class APIManager : MonoBehaviour
 			new MultipartFormDataSection("playerToken", _token.ToString())
 		};
 		using UnityWebRequest request = UnityWebRequest.Post(API_URL + "DisconnectFromServer", formData);
-		Debug.Log("Disconnect Attempt Post Defined");
 		yield return request.SendWebRequest();
-		Debug.Log("Disconnect Attempt Post Happened");
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
-				Debug.Log("Disconnect Attempt Post Successful");
 				_mainMenu.OnDisconnectFromServerSuccess();
 				break;
 		}
@@ -87,7 +82,6 @@ public class APIManager : MonoBehaviour
 	{
 		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsTicketValid/" + _token);
 		yield return request.SendWebRequest();
-		Debug.Log(request.result);
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
@@ -113,7 +107,6 @@ public class APIManager : MonoBehaviour
 			switch (request.result)
 			{
 				case UnityWebRequest.Result.Success:
-					Debug.Log("Left Queue");
 					_queueFlag = false;
 					_mainMenu.OnLeftQueueSuccess();
 					break;
@@ -131,7 +124,6 @@ public class APIManager : MonoBehaviour
 			using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/" + _token))
 			{
 				yield return request.SendWebRequest();
-				Debug.Log(request.result);
 				switch (request.result)
 				{
 					case UnityWebRequest.Result.Success:
@@ -162,7 +154,6 @@ public class APIManager : MonoBehaviour
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
-				Debug.Log("Match Join Post Successful");
 				_queueFlag = false;
 				string joinBool = "false";
 				while (joinBool == "false")
@@ -197,7 +188,6 @@ public class APIManager : MonoBehaviour
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
-				Debug.Log("Disconnect Attempt Post Successful");
 				_inGameMenu.OnExitMatchSuccessful();
 				break;
 		}
@@ -207,7 +197,6 @@ public class APIManager : MonoBehaviour
 	{
 		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchActive/" + _token);
 		yield return request.SendWebRequest();
-		Debug.Log(request.result);
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
@@ -220,7 +209,6 @@ public class APIManager : MonoBehaviour
 	{
 		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetMatchStatus?matchID=" + _matchID + "&playerToken=" + _token);
 		yield return request.SendWebRequest();
-		Debug.Log(request.result);
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
@@ -233,7 +221,6 @@ public class APIManager : MonoBehaviour
 	{
 		using UnityWebRequest request = UnityWebRequest.Get(API_URL + "GetNextQuestion/" + _token);
 		yield return request.SendWebRequest();
-		Debug.Log(request.result);
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
