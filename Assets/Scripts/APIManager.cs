@@ -128,22 +128,21 @@ public class APIManager : MonoBehaviour
 		yield return StartCoroutine(IsTicketValid((callback) => { _ticketValid = callback; }));
 		while (_ticketValid & _queueFlag)
 		{
-			using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/"+_token))
+			using (UnityWebRequest request = UnityWebRequest.Get(API_URL + "IsMatchFound/" + _token))
 			{
 				yield return request.SendWebRequest();
 				Debug.Log(request.result);
 				switch (request.result)
 				{
 					case UnityWebRequest.Result.Success:
-						if (request.downloadHandler.text == "0") 
+						var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text);
+						bool _matchFound = bool.Parse(json["Found"]);
+						if (_matchFound)
 						{
-							_mainMenu.TriggerWaitingText();
-							Debug.Log("Match Not Found");
-							break;
+							_matchID = int.Parse(json["MatchID"]);
+							_mainMenu.OnMatchFound(json["OtherPlayerName"]);
+							_queueFlag = false;
 						}
-						_matchID = int.Parse(request.downloadHandler.text);
-						_mainMenu.OnMatchFound();
-						Debug.Log("result success");
 						break;
 				}
 			}

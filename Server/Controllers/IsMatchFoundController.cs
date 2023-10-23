@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Server.Database;
+using JsonDict = System.Collections.Generic.Dictionary<string, object?>;
 
 namespace Server.Controllers
 {
@@ -8,7 +9,7 @@ namespace Server.Controllers
 	public class IsMatchFoundController : ControllerBase
 	{
 		[HttpGet("{playerToken}")]
-		public int Get(int playerToken)
+		public JsonDict Get(int playerToken)
 		{
 			return DatabaseManager.Instance.GetMatchFound(playerToken);
 		}

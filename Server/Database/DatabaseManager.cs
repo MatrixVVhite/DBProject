@@ -185,6 +185,8 @@ namespace Server.Database
 		string QueryPlayerID(int playerToken) => $"SELECT PlayerID FROM players WHERE PlayerToken = {playerToken} LIMIT 1";
 
 		string QueryPlayerToken(int playerID) => $"SELECT PlayerToken FROM players WHERE PlayerID = {playerID} LIMIT 1";
+		
+		string QueryPlayerName(int playerID) => $"SELECT PlayerName FROM players WHERE PlayerID = {playerID} LIMIT 1";
 		#endregion
 
 		#region QUERIES
@@ -223,11 +225,18 @@ namespace Server.Database
 		/// </summary>
 		/// <param name="playerToken">Unique token of the requesting player</param>
 		/// <returns>Whether the server has found a match by returning the player's match ID, !=0 == true</returns>
-		public int GetMatchFound(int playerToken)
+		public JsonDict GetMatchFound(int playerToken)
 		{
 			int playerID = GetPlayerID(playerToken);
 			int playerLobby = GetPlayerLobby(playerID);
-			return playerLobby;
+			string otherPlayerName = ExecuteQueryString(QueryPlayerName(playerID));
+			JsonDict ret = new()
+			{
+				{ "Found", playerLobby != 0 },
+				{ "MatchID", playerLobby },
+				{ "OtherPlayerName",  otherPlayerName}
+			};
+			return ret;
 		}
 
 		/// <summary>
@@ -238,7 +247,7 @@ namespace Server.Database
 		/// <returns>Whether this player is inside a match</returns>
 		public bool GetMatchActive(int playerToken)
 		{
-			int matchID = GetMatchFound(playerToken);
+			int matchID = int.Parse(GetMatchFound(playerToken)["MatchID"].ToString());
 			if (matchID != 0)
 			{
 				string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
@@ -279,7 +288,7 @@ namespace Server.Database
 				int thisPlayerQuestionsLeft = 10 - thisPlayerQuestionsAnswered;
 				int otherPlayerQuestionsLeft = 10 - otherPlayerQuestionsAnswered;
 				string getGameActiveStatus = $"SELECT IsGameActive FROM lobbies WHERE LobbyID = {matchID};";
-				string getOtherPlayerName = $"SELECT PlayerName FROM players WHERE PlayerID = {otherPlayerID};";
+				string getOtherPlayerName = QueryPlayerName(otherPlayerID);
 				string otherPlayerName = ExecuteQueryString(getOtherPlayerName);
 				int gameActiveStatus = ExecuteQueryInt(getGameActiveStatus);
 				JsonDict dataToSend = new()

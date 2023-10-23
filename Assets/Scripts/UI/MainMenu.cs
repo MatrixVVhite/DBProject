@@ -15,7 +15,7 @@ namespace UI
 		[SerializeField] private Button _exitGameButton;
 		[SerializeField] private Button _disconnectButton;
 		[SerializeField] private Button _leaveQueueButton;
-		[SerializeField] private GameObject _connectionFailed;
+		[SerializeField] private TextMeshProUGUI _menuText;
 		#endregion
 
 		#region FUNCTIONS
@@ -33,6 +33,7 @@ namespace UI
 		public void OnStartMatchButtonClicked()
 		{
 			StartCoroutine(APIManager.Instance.JoinMatch());
+			ShowMenuText("Waiting for other player...");
 		}
 
 		public void OnExitGameButtonClicked()
@@ -76,6 +77,7 @@ namespace UI
 			_joinQueueButton.interactable = false;
 			_leaveQueueButton.gameObject.SetActive(true);
 			_disconnectButton.gameObject.SetActive(false);
+			ShowMenuText("Looking for match...");
 		}
 
 		public void OnLeftQueueSuccess()
@@ -86,12 +88,14 @@ namespace UI
 			_disconnectButton.gameObject.SetActive(true);
 			_connectButton.gameObject.SetActive(false);
 			_startMatchButton.gameObject.SetActive(false);
+			HideMenuText();
 		}
 
-		public void OnMatchFound()
+		public void OnMatchFound(string otherName)
 		{
 			_joinQueueButton.gameObject.SetActive(false);
 			_startMatchButton.gameObject.SetActive(true);
+			ShowMenuText($"You are up against {otherName}!");
 		}
 
 		public void OnStartGame()
@@ -100,9 +104,15 @@ namespace UI
 		}
 		#endregion
 
-		public void TriggerWaitingText()
+		public void ShowMenuText(string text)
 		{
-			_connectionFailed.SetActive(true);
+			_menuText.text = text;
+			_menuText.gameObject.SetActive(true);
+		}
+
+		public void HideMenuText()
+		{
+			_menuText.gameObject.SetActive(false);
 		}
 		#endregion
 	}
