@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
 using UI;
-using System.Security;
 
 public class APIManager : MonoBehaviour
 {
@@ -41,6 +40,7 @@ public class APIManager : MonoBehaviour
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
+				GameManager.Instance.UpdatePlayerName(playerName);
 				_token = int.Parse(request.downloadHandler.text);
 				_mainMenu.OnConnectToServerSuccess();
 				break;

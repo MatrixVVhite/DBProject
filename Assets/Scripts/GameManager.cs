@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UI;
-using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -68,13 +67,13 @@ public class GameManager : MonoBehaviour
 			UpdateUI();
 			yield return new WaitForSeconds(1);
 			if (WaitingForEnd)
-				_inGameMenu.LoadEndScreen();
+				OnYourPlayerFinish();
 		}
 	}
 
 	private void GameEnd()
 	{
-		ShowEndMessage();
+		OnBothPlayersFinish();
 	}
 
 	private IEnumerator GetMatchStatus()
@@ -96,16 +95,32 @@ public class GameManager : MonoBehaviour
 		_inGameMenu.UpdatePlayerStats(_yourScore, _otherScore, _yourQuestionsLeft, _otherQuestionsLeft);
 	}
 
-	private void ShowEndMessage()
+	private void OnYourPlayerFinish()
+	{
+		if (WaitingForEnd)
+		{
+			_inGameMenu.ShowEndScreen();
+			_inGameMenu.ShowEndMessage($"Waiting for {_otherName} to finish");
+		}
+	}
+
+	private void OnBothPlayersFinish()
+	{
+		_inGameMenu.ShowEndScreen();
+		_inGameMenu.ShowEndMessage(GetResultsText());
+		_inGameMenu.EnableExitButton();
+	}
+
+	private string GetResultsText()
 	{
 		string message;
 		if (YourScoreIsHigher)
 			message = "Congratulations!\nYou have won the match";
 		else if (OtherScoreIsHigher)
-			message = "Womp Womp...\nIt seems that your opponent has defeated you";
+			message = $"Womp Womp...\nIt seems that {_otherName} has defeated you";
 		else
 			message = "WOAH!\nIt seems that this match was a tie!";
-		_inGameMenu.UpdateEndMessage(message);
+		return message;
 	}
 
 	public void UpdatePlayerName(string name)

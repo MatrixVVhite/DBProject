@@ -73,15 +73,19 @@ namespace UI
 			_otherStats.UpdateQuestions(otherQuestionsLeft);
 		}
 
-		public void LoadEndScreen()
+		public void ShowEndScreen()
 		{
 			_endGameScreen.SetActive(true);
 		}
 
-		public void UpdateEndMessage(string message)
+		public void ShowEndMessage(string message)
+		{
+			_finalMessage.text = message;
+		}
+
+		public void EnableExitButton()
 		{
 			_exitMatchButton.interactable = true;
-			_finalMessage.text = message;
 		}
 
 		public void OnExitMatchButtonClicked()
