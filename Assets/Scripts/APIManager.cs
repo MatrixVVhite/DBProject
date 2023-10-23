@@ -245,7 +245,7 @@ public class APIManager : MonoBehaviour
 		}
 	}
 
-	public IEnumerator AnswerQuestion(int answerID, float answerTime, System.Action<bool> answerResult, System.Action<int> updateScore)
+	public IEnumerator AnswerQuestion(int answerID, float answerTime, System.Action<bool> answerResult = null, System.Action<int> updateScore = null)
 	{
 		List<IMultipartFormSection> formData = new()
 		{
@@ -261,8 +261,10 @@ public class APIManager : MonoBehaviour
 				var result = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.downloadHandler.text);
 				if (!IsNullOrEmpty(result))
 				{
-					answerResult(bool.Parse(result["Correct"]));
-					updateScore(int.Parse(result["Score"]));
+					if (answerResult is not null)
+						answerResult(bool.Parse(result["Correct"]));
+					if (updateScore is not null)
+						updateScore(int.Parse(result["Score"]));
 				}
 				break;
 		}

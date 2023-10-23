@@ -13,15 +13,16 @@ namespace UI
 		[SerializeField] private AnswerButton[] _answers;
 		[SerializeField] private PlayerStatusSidebar _playerStats;
 		[SerializeField] private PlayerStatusSidebar _otherStats;
-		[SerializeField] private Bar _timerBar; // TODO Animate this
+		[SerializeField] private Bar _timerBar;
 		[SerializeField] private GameObject _endGameScreen;
 		[SerializeField] private TextMeshProUGUI _finalMessage;
 		[SerializeField] private Button _exitMatchButton;
 		private Dictionary<string, string> _currentQuestion;
+		private Coroutine _animateTimerCoroutine;
 		#endregion
 
 		#region FUNCTIONS
-		public void ResetUI()
+		public void Reset()
 		{
 			_question.text = string.Empty;
 			_endGameScreen.SetActive(false);
@@ -50,6 +51,7 @@ namespace UI
 
 		public IEnumerator SubmitAnswer(int AnswerID, float answerTime, AnswerButton button)
 		{
+			DisableAllButtons();
 			yield return StartCoroutine(APIManager.Instance.AnswerQuestion(
 				AnswerID,
 				answerTime,
@@ -96,6 +98,34 @@ namespace UI
 		public void OnExitMatchSuccessful()
 		{
 			UIManager.Instance.ExitMatch();
+		}
+
+		private IEnumerator AnimateTimerCoroutine()
+		{
+			while(GameManager.Instance.AnswerTimeLeft > 0)
+			{
+				_timerBar.UpdateBar(GameManager.Instance.AnswerTimeLeft/GameManager.ANSWER_TIME_LIMIT);
+				_timerBar.UpdateText(Mathf.Round(GameManager.Instance.AnswerTimeLeft).ToString());
+				yield return null;
+			}
+		}
+
+		public void AnimateTimer()
+		{
+			StopAnimateTimer();
+			_animateTimerCoroutine = StartCoroutine(AnimateTimerCoroutine());
+		}
+
+		public void StopAnimateTimer()
+		{
+			if (_animateTimerCoroutine is not null)
+				StopCoroutine(_animateTimerCoroutine);
+		}
+
+		public void DisableAllButtons()
+		{
+			foreach (var answerButton in _answers)
+				answerButton.DisableButton();
 		}
 		#endregion
 	}

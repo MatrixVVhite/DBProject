@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
 	public const int MAX_SCORE_PER_QUESTION = 10;
 	public const int MAX_SCORE_PER_MATCH = QUESTIONS_PER_MATCH * MAX_SCORE_PER_QUESTION;
 	public const int GAME_FINISHED_QUESTION_COUNT = QUESTIONS_PER_MATCH + 1;
+	public const float ANSWER_TIME_LIMIT = 10f;
 	[SerializeField] private InGameMenu _inGameMenu;
 	private string _yourName;
 	private string _otherName;
@@ -16,11 +17,13 @@ public class GameManager : MonoBehaviour
 	private int _yourQuestionsLeft = QUESTIONS_PER_MATCH;
 	private int _otherQuestionsLeft = QUESTIONS_PER_MATCH;
 	private float _currentAnswerStartTime = 0f;
+	private Coroutine _timerCoroutine;
 
 	public static GameManager Instance { get; private set; }
 	private bool GameRunning => YouHaveQuestionsLeft | OtherHaveQuestionsLeft;
 	private bool WaitingForEnd => !YouHaveQuestionsLeft;
-	public float AnswerDeltaTime => Time.unscaledTime - _currentAnswerStartTime;
+	public float AnswerTimeElapsed => Time.unscaledTime - _currentAnswerStartTime;
+	public float AnswerTimeLeft => ANSWER_TIME_LIMIT - AnswerTimeElapsed;
 	public bool YourScoreIsHigher => _yourScore > _otherScore;
 	public bool OtherScoreIsHigher => _otherScore > _yourScore;
 	public bool YouHaveQuestionsLeft => _yourQuestionsLeft > 0;
@@ -134,8 +137,28 @@ public class GameManager : MonoBehaviour
 			yield return StartCoroutine(APIManager.Instance.GetNextQuestion());
 	}
 
-	public void StartTimer()
+	private IEnumerator TimerCoroutine()
 	{
 		_currentAnswerStartTime = Time.unscaledTime;
+		yield return new WaitForSecondsRealtime(ANSWER_TIME_LIMIT);
+		_inGameMenu.StopAnimateTimer();
+		_inGameMenu.DisableAllButtons();
+		yield return StartCoroutine(APIManager.Instance.AnswerQuestion(0, ANSWER_TIME_LIMIT));
+		yield return new WaitForSeconds(1);
+		StartCoroutine(LoadQuestion());
+	}
+
+	public void StartTimer()
+	{
+		StopTimer();
+		_timerCoroutine = StartCoroutine(TimerCoroutine());
+		_inGameMenu.AnimateTimer();
+	}
+
+	public void StopTimer()
+	{
+		_inGameMenu.StopAnimateTimer();
+		if (_timerCoroutine is not null)
+			StopCoroutine(_timerCoroutine);
 	}
 }

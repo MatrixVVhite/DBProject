@@ -665,6 +665,10 @@ namespace Server.Database
 			{
 				return ret;
 			}
+			catch (ArgumentOutOfRangeException)
+			{
+				return ret;
+			}
 			int scoreToAdd = 0;
 			if (correct)
 				scoreToAdd = CalculateScore(answerTime);

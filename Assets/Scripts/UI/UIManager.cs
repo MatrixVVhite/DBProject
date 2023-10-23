@@ -28,7 +28,7 @@ namespace UI
 		{
 			_mainMenu.gameObject.SetActive(false);
 			_inGameMenu.gameObject.SetActive(true);
-			_inGameMenu.ResetUI();
+			_inGameMenu.Reset();
 		}
 
 		public void ExitMatch()
