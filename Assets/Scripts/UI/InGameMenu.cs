@@ -62,6 +62,16 @@ namespace UI
 			StartCoroutine(GameManager.Instance.LoadQuestion());
 		}
 
+		public void UpdateYourName(string name)
+		{
+			_playerStats.SetName(name);
+		}
+
+		public void UpdateOtherName(string name)
+		{
+			_otherStats.SetName(name);
+		}
+
 		public void UpdatePlayerScore(int yourScore)
 		{
 			_playerStats.UpdateScore(yourScore);

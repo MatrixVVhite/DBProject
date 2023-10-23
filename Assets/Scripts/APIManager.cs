@@ -40,7 +40,7 @@ public class APIManager : MonoBehaviour
 		switch (request.result)
 		{
 			case UnityWebRequest.Result.Success:
-				GameManager.Instance.UpdatePlayerName(playerName);
+				GameManager.Instance.UpdateYourName(playerName);
 				_token = int.Parse(request.downloadHandler.text);
 				_mainMenu.OnConnectToServerSuccess();
 				break;

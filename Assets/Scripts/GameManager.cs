@@ -91,6 +91,7 @@ public class GameManager : MonoBehaviour
 		_yourQuestionsLeft = yourQuestionsLeft;
 		_otherQuestionsLeft = otherQuestionsLeft;
 		_otherName = otherName;
+		_inGameMenu.UpdateOtherName(_otherName);
 	}
 
 	private void UpdateUI()
@@ -126,9 +127,10 @@ public class GameManager : MonoBehaviour
 		return message;
 	}
 
-	public void UpdatePlayerName(string name)
+	public void UpdateYourName(string name)
 	{
 		_yourName = name;
+		_inGameMenu.UpdateYourName(_yourName);
 	}
 
 	public IEnumerator LoadQuestion()
