@@ -101,9 +101,10 @@ public class GameManager : MonoBehaviour
 
 	private void OnYourPlayerFinish()
 	{
+		StopTimer();
+		_inGameMenu.ShowEndScreen();
 		if (WaitingForEnd)
 		{
-			_inGameMenu.ShowEndScreen();
 			_inGameMenu.ShowEndMessage($"Waiting for {_otherName} to finish");
 		}
 	}
