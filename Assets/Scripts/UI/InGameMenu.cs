@@ -40,6 +40,7 @@ namespace UI
 			try
 			{
 				_question.text = _currentQuestion["QuestionText"];
+				ShuffleAnswers();
 				for (int i = 0; i < 4; i++)
 					_answers[i].UpdateAnswer(i + 1, _currentQuestion["Answer" + (i + 1)]);
 			}
@@ -49,14 +50,14 @@ namespace UI
 			}
 		}
 
-		public IEnumerator SubmitAnswer(int AnswerID, float answerTime, AnswerButton button)
+		public IEnumerator SubmitAnswer(int answerID, float answerTime, AnswerButton button)
 		{
 			DisableAllButtons();
 			yield return StartCoroutine(APIManager.Instance.AnswerQuestion(
-				AnswerID,
+				answerID,
 				answerTime,
-				(isCorrect) => { button.ColorResponse(isCorrect); },
-				(updatedScore) => { UpdatePlayerScore(updatedScore); }
+				button.ColorResponse,
+				UpdatePlayerScore
 			));
 			yield return new WaitForSeconds(1);
 			StartCoroutine(GameManager.Instance.LoadQuestion());
@@ -136,6 +137,16 @@ namespace UI
 		{
 			foreach (var answerButton in _answers)
 				answerButton.DisableButton();
+		}
+
+		private void ShuffleAnswers()
+		{
+			int n = _answers.Length;
+			while (n > 1)
+			{
+				int k = Random.Range(0, n--);
+				(_answers[k], _answers[n]) = (_answers[n], _answers[k]);
+			}
 		}
 		#endregion
 	}
